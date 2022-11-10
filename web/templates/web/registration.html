@@ -1,0 +1,90 @@
+{% extends 'web/layout/basic.html' %}
+{% load static %}
+{% block title %}
+    Registration
+{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'web/css/account.css' %}">
+{% endblock %}
+{% block content %}
+<div class="account">
+            <h1 class="title">Registration</h1>
+            <form action="" method="post" autocomplete="on" enctype="multipart/form-data" >
+                {% csrf_token %}
+                <div class="form-group {{ valid_state.username }}">
+                    <label for="{{ register_form.username.label.id_for_label }}" class="control-label">{{ register_form.username.label }}</label>
+                    {{ register_form.username }}
+                    <span class="help-block">{{ register_form.username.errors.0 }}</span>
+                    <btn id="validation_username" class="btn btn-default" >See it available</btn><span id="validation_username_res" class="help-block"></span>
+                </div>
+                <div class="form-group {{ valid_state.password }}">
+                    <label class="control-label" for="{{ register_form.password.label.id_for_label }}">{{ register_form.password.label }}</label>
+                    {{ register_form.password }}
+                    {{ register_form.password.errors.0 }}
+                </div>
+                <div class="form-group {{ valid_state.phone }}">
+                    <label class="control-label" for="{{ register_form.phone.label.id_for_label }}">
+                        {{ register_form.phone.label }}
+                    </label>
+                    {{ register_form.phone }}
+                    {{ register_form.phone.errors.0 }}
+                </div>
+                <div class="form-group {{ valid_state.code }}">
+                    <label class="contrl-label"><btn id="get_validation_code" class="btn btn-default">Get Code</btn></label>
+                    <span class="help-block" id="validaion_phone_res"></span>
+                    {{ register_form.code }}
+                    {{ register_form.code.errors.0 }}
+                </div>
+                <div class="form-group ">
+                    <input type="submit" class="btn btn-primary" value="Submit">
+                </div>
+            </form>
+        </div>
+
+
+{% endblock %}
+{% block js %}
+<script>
+    $('#get_validation_code').click(function(){
+        $.ajax({
+            url:'{% url 'validation_phone' %}',
+            type:'post',
+            data:{
+                phone:$('#id_phone').val(),
+                tpl:'1581735',
+                csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val()
+            },
+            success:function(data){
+                $('#validaion_phone_res').html(data)
+            }
+        })
+    })
+</script>
+<script>
+    $("#validation_username").click(function(){
+        $.ajax(
+            {
+                url:'/validation_username/',
+                type:'post',
+                data:{
+                    username:$('#id_username').val(),
+                    csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val()
+                },
+                success:function (data){
+                    $("#validation_username_res").html('$ $ $');
+                    setTimeout(function(){
+                        $("#validation_username_res").html('$ $ $ $ $ $');
+                    },200);
+                    setTimeout(function(){
+                        $("#validation_username_res").html('$ $ $ $ $ $ $ $ $');
+                    },400);
+                    setTimeout(function(){
+                        $("#validation_username_res").html(data);
+                    },600);
+
+                }
+            }
+        )
+    })
+</script>
+{% endblock %}
