@@ -4,7 +4,7 @@ import re
 import time
 from saas.settings import MEDIA_ROOT
 from django.shortcuts import render,redirect
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 from django.views import View
 from web.forms.account import *
 from web.models import UserInfo,ValidationPhone
@@ -72,13 +72,16 @@ class ValidationPhoneView(View):
     def post(self, request, *args, **kwargs):
         phone=request.POST.get('phone')
         pattern=re.compile(r'\d{11}')
+        validation_res={}
         if not pattern.match(phone):
-            validition_res='The format of the phone is incorrect.'
-            return HttpResponse(validition_res)
+            validation_res['status']=False
+            validation_res['msg']='The format of the phone is incorrect.'
+            return JsonResponse(validation_res)
         res=UserInfo.objects.filter(phone=phone).count()
         if res:
-            validation_res='The phone is already being used'
-            return HttpResponse(validation_res)
+            validation_res['status'] = False
+            validation_res['msg'] = 'The format of the phone is incorrect'
+            return JsonResponse(validation_res)
         else:
             tpl = request.POST.get('tpl')
             sendsm = SendSm(template_id=tpl)
@@ -95,10 +98,13 @@ class ValidationPhoneView(View):
                 #so when you take it back from the database,you will get a datetime.datetime instance with a tzinfo,
                 #if you want it be None,call the datetime.datetime.replace(tzinfo=None)
                 code = ValidationPhone.objects.create(phone=phone, code=code, exp_time=exp_time)
-                validation_res='Validation code already being sent,and expires in 5 minutes'
-                return HttpResponse(validation_res)
+                validation_res['status'] = True
+                validation_res['msg'] = 'Validation code already being sent,and expires in 5 minutes'
+                return JsonResponse(validation_res)
             else:
-                return HttpResponse(resp.SendStatusSet[0].Message)
+                validation_res['status']=False
+                validation_res['msg']=resp.SendStatusSet[0].Message
+                return JsonResponse(validation_res)
 
 class TestView(View):
     def get(self,request):
@@ -107,3 +113,7 @@ class TestView(View):
         #It demonstrate that the form rendering is not the same as other normal
         #objects
         return HttpResponse('go to the terminal')
+
+class FilePondView(View):
+    def get(self,request,*args,**kwargs):
+        return render(request,r'web/filepond.html',{})

@@ -30,8 +30,8 @@
                     {{ register_form.phone.errors.0 }}
                 </div>
                 <div class="form-group {{ valid_state.code }}">
-                    <label class="contrl-label"><btn id="get_validation_code" class="btn btn-default">Get Code</btn></label>
-                    <span class="help-block" id="validaion_phone_res"></span>
+                    <label class="contrl-label"><input type="button" id="get_validation_code" class="btn btn-default" value="Get Code"></label>
+                    <span class="help-block" id="validation_phone_res"></span>
                     {{ register_form.code }}
                     {{ register_form.code.errors.0 }}
                 </div>
@@ -54,10 +54,35 @@
                 tpl:'1581735',
                 csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val()
             },
-            success:function(data){
-                $('#validaion_phone_res').html(data)
+            dataType:'json',
+            success:function(res){
+                console.log(res)
+                if (res['status']==true){
+                    $('#validation_phone_res').text(res['msg'])
+                    $('#get_validation_code').prop("disabled",true)
+                    {#as you can see,the prop() method only have effect on the form controls#}
+                    {# and if your btn is a btn tag,you wouldn't see any thing you want #}
+                    {#I didn't see any property change after above code#}
+                    var time=5
+                    var obj=setInterval(function(){
+                        {#the setInterval function and the cleatInterval function is in the javascript#}
+                        $('#get_validation_code').val ('Reget Code in '+time)
+                        time-=1
+                        if(time<1){
+                            clearInterval(obj)
+                            $('#get_validation_code').prop('disabled',false)
+                            $('#get_validation_code').val('Reget Code')
+                        }
+                },1000)
+                }
+                else{
+                    $('#validation_phone_res').text(res['msg'])
+                }
             }
         })
+        {#when I get the successful res from#}
+        {#the backend,I need to set a Interval when this button is clicked,and #}
+
     })
 </script>
 <script>
