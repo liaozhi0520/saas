@@ -30,8 +30,16 @@ class UserInfo(AbstractUser):
     province=models.CharField(max_length=3,choices=PROVINCE)
     gender=models.CharField(max_length=2,choices=GENDER)
     avatar=models.ImageField(upload_to=avatar_upload_path,default='avatar/default.png')
+    projects=models.ManyToManyField(to='Project')
 
 class ValidationPhone(models.Model):
     phone=models.CharField(max_length=11,default=None)
     code=models.CharField(max_length=6)
     exp_time=models.DateTimeField()
+
+class Project(models.Model):
+    name=models.CharField(max_length=20)
+    creator=models.ForeignKey(to='UserInfo',on_delete=False) # I don't pass the models.CASCADE to it,you know why?
+    bgc = models.CharField(max_length=7)
+    description=models.CharField(max_length=100)
+

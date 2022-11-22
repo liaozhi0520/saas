@@ -13,7 +13,7 @@ import random
 from django.contrib.auth import login,authenticate,logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-
+from django.contrib.auth import login
 
 class LoginRequiredMixin(object):
     @method_decorator(login_required)
@@ -106,14 +106,79 @@ class ValidationPhoneView(View):
                 validation_res['msg']=resp.SendStatusSet[0].Message
                 return JsonResponse(validation_res)
 
-class TestView(View):
-    def get(self,request):
-        reg_form=RegisterForm()
-        print(vars(reg_form.fields.username))
-        #It demonstrate that the form rendering is not the same as other normal
-        #objects
-        return HttpResponse('go to the terminal')
-
-class FilePondView(View):
+class LoginView(View):
     def get(self,request,*args,**kwargs):
-        return render(request,r'web/filepond.html',{})
+        login_form=LoginForm(request)
+        return render(request,r'web/login.html',context={'login_form':login_form})
+
+    def post(self,request,*args,**kwargs):
+        login_form=LoginForm(request,data=request.POST)
+        if login_form.is_valid():
+            return redirect('web:index')
+        else:
+            return render(request,r'web/login.html',{'login_form':login_form})
+
+class GrapCheckCodeView(View):
+    def get(self,request,*args,**kwargs):
+        #choose a random pic from dist,Do I just return the bytes of the pic?
+        #yes,I am right
+        from io import BytesIO
+        from utils.check_code.check_code import gen_check_code
+        stream=BytesIO()
+        code,img=gen_check_code()
+        img.save(stream,'png')
+        request.session['grap_check_code']=code
+        return HttpResponse(stream.getvalue())
+
+class TestView(View):
+    def get(self,request,*args,**kwargs):
+        return HttpResponse('all done')
+    def post(self,request):
+        print(request.FILES)
+        return HttpResponse('all done')
+
+class IndexView(View):
+    def get(self,request,*args,**kwargs):
+
+        return render(request,r'web/index.html',{'requset':request})
+
+class ResetPwdView(LoginRequiredMixin,View):
+    def get(self,request,*args,**kwargs):
+        reset_pwd_form=ResetPwdForm(request)
+        return render(request,r'web/reset_pwd.html',{'form':reset_pwd_form})
+
+    def post(self,request,*args,**kwargs):
+        reset_pwd_form=ResetPwdForm(request,data=request.POST)
+        if reset_pwd_form.is_valid():
+            user=reset_pwd_form.cleaned_data.get('old_pwd')
+            user.set_password(reset_pwd_form.cleaned_data.get('new_pwd'))
+            user.save()
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request,user)
+            return redirect('web:index')
+
+        else:
+            return render(request,r'web/reset_pwd.html',{'form':reset_pwd_form})
+
+
+
+class VerifyOldPwdView(LoginRequiredMixin,View):
+    def post(self,request,*args,**kwargs):
+        old_pwd = request.POST.get('old_pwd').strip()
+        username = request.user.username
+        from web.models import UserInfo
+        user = UserInfo.objects.filter(username=username).first()
+        res={}
+        if user.check_password(raw_password=old_pwd):
+            res['flag']=True
+            res['msg']='old password correct'
+        else:
+            res['flag'] = False
+            res['msg'] = 'old password incorrect'
+        return JsonResponse(res)
+
+class LogoutView(LoginRequiredMixin,View):
+    def get(self,request,*args,**kwargs):
+        logout(request)
+        return redirect('index')
+

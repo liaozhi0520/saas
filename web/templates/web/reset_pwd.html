@@ -1,0 +1,59 @@
+{% extends 'web/layout/basic.html' %}
+{% load static %}
+{% block title %}
+Reset Password
+{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'web/css/account.css' %}">
+{% endblock %}
+{% block content %}
+<div class="account">
+    <div class="title">Reset Password</div>
+    <form action="" method="post" autocomplete="on">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label id="{{ field.id_for_label }}" >{{ field.label }}</label>
+                {{ field }}
+                <div class="error-msg">{{ field.errors.0 }}</div>
+            </div>
+        {% endfor %}
+        <input type="submit" class="btn btn-primary" value="Submit">
+    </form>
+</div>
+{% endblock %}
+{% block js %}
+    <script>
+        $('[name=new_pwd]').focus(function(){
+            var old_pwd=$('[name=old_pwd]').val()
+            if (! old_pwd){
+                $('[name=old_pwd]').next().html('You need to input the old password firstly')
+            }
+            else{
+                $.ajax({
+                    url:'{% url 'web:verify_old_pwd' %}',
+                    method:'post',
+                    data:{
+                        old_pwd:old_pwd,
+                        csrfmiddlewaretoken:$('[name=csrfmiddlewaretoken]').val()
+                    },
+                    dataType:'json',
+                    success:function (res){
+                        if(res['flag']){
+                            $('[name=old_pwd]').next().removeClass('error-msg')
+                            $('[name=old_pwd]').parent().removeClass('has-error')
+                            $('[name=old_pwd]').parent().addClass('has-success')
+                            $('[name=old_pwd]').next().html(res['msg'])
+                        }
+                        else{
+                            $('[name=old_pwd]').next().addClass('error-msg')
+                            $('[name=old_pwd]').parent().addClass('has-error')
+                            $('[name=old_pwd]').next().html(res['msg'])
+                        }
+                    }
+
+                })
+            }
+        })
+    </script>
+{% endblock %}

@@ -13,7 +13,7 @@ def gen_check_code(width=120,height=30,char_lenth=5,font_size=28):
     #Let's say draw five characters in the image
     #generate a random font
     def ran_font():
-        fonts=('kumo.ttf','domi.ttf','Monaco.ttf')
+        fonts=(r'utils/check_code/kumo.ttf',r'utils/check_code/domi.ttf',r'utils/check_code/Monaco.ttf')
         index=random.randint(0,2)  #note,both side include
         font = ImageFont.truetype(font=fonts[index], size=font_size)
         return font

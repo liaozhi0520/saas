@@ -47,7 +47,7 @@
 <script>
     $('#get_validation_code').click(function(){
         $.ajax({
-            url:'{% url 'validation_phone' %}',
+            url:'{% url 'web:validation_phone' %}',
             type:'post',
             data:{
                 phone:$('#id_phone').val(),
@@ -63,7 +63,7 @@
                     {#as you can see,the prop() method only have effect on the form controls#}
                     {# and if your btn is a btn tag,you wouldn't see any thing you want #}
                     {#I didn't see any property change after above code#}
-                    var time=5
+                    var time=60
                     var obj=setInterval(function(){
                         {#the setInterval function and the cleatInterval function is in the javascript#}
                         $('#get_validation_code').val ('Reget Code in '+time)
@@ -89,7 +89,7 @@
     $("#validation_username").click(function(){
         $.ajax(
             {
-                url:'/validation_username/',
+                url:'{% url 'web:validation_username' %}',
                 type:'post',
                 data:{
                     username:$('#id_username').val(),
