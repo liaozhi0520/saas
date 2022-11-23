@@ -13,7 +13,7 @@ import random
 from django.contrib.auth import login,authenticate,logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.contrib.auth import login
+
 
 class LoginRequiredMixin(object):
     @method_decorator(login_required)
@@ -180,5 +180,5 @@ class VerifyOldPwdView(LoginRequiredMixin,View):
 class LogoutView(LoginRequiredMixin,View):
     def get(self,request,*args,**kwargs):
         logout(request)
-        return redirect('index')
+        return redirect('web:index')
 

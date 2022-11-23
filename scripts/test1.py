@@ -16,3 +16,6 @@ django.setup()
 
 # from web.models import UserInfo
 # UserInfo.objects.create_user(username='test_for_offline_script',password='testpwd')
+from web.models import Project
+proj=Project.objects.filter(id=1).first()
+print(proj.color)

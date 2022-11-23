@@ -1,5 +1,6 @@
 from django.urls import re_path
 from web.views.account import *
+from web.views.project_center import *
 urlpatterns=[
     re_path(r'^index/$',IndexView.as_view(),name='index'),
     re_path(r'^registration/',RegistrationView.as_view(),name='registration'),
@@ -11,4 +12,8 @@ urlpatterns=[
     re_path(r'^reset_password/$',ResetPwdView.as_view(),name='reset_pwd'),
     re_path(r'^verify_old_password',VerifyOldPwdView.as_view(),name='verify_old_pwd'),
     re_path(r'^logout/$',LogoutView.as_view(),name='logout'),
+
+
+    ## project center
+    re_path(r'^project_list/$',ProjectListView.as_view(),name='project_list')
 ]
