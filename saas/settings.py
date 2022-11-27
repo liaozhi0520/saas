@@ -49,10 +49,11 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'middleware.mymiddleware.UserStatusAuth'
 ]
 
 ROOT_URLCONF = 'saas.urls'
@@ -121,13 +122,18 @@ LOGIN_URL='/login/'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False  ##the setting USE_TZ means that use_timezone.
+#I set the option to be False,because when I use datetime.datetime.now()
+#to get a time object and store it in my mysql,the mysql will give a
+#the time a timezone info automatically,and when I retrive the time in the backend, I need to
+#use it to campare with other time,an error will occur because the time retrived have a
+#timezone info.
 
 AUTH_USER_MODEL='web.UserInfo'
 # Static files (CSS, JavaScript, Images)

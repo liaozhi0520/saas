@@ -128,7 +128,7 @@ class LoginForm(BootstrapForm,forms.Form):
         if user:
             login(self.request,user)
             self.request.session.pop('grap_check_code')
-            self.request.session.set_expiry(60 * 60)
+            self.request.session.set_expiry(60 * 60 * 24 *7) #expire in 7 days
         else:
             self.add_error('password','the password is incorrect')
 

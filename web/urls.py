@@ -15,5 +15,5 @@ urlpatterns=[
 
 
     ## project center
-    re_path(r'^project_list/$',ProjectListView.as_view(),name='project_list')
+    re_path(r'^project/list/$',ProjectListView.as_view(),name='project_list')
 ]

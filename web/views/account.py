@@ -13,7 +13,8 @@ import random
 from django.contrib.auth import login,authenticate,logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-
+from web.models import Transaction,PricePolicy
+import uuid
 
 class LoginRequiredMixin(object):
     @method_decorator(login_required)
@@ -42,7 +43,11 @@ class RegistrationView(View):
             #cleaned_data is a dict.
             profile=UserInfo.objects.create_user(**cleaned_data)
             profile.save()
-            return HttpResponse('Register succeeded')
+            pri_pol=PricePolicy.objects.filter(id=1).first()
+            Transaction.objects.create(user=profile,status=1,order_num=uuid.uuid4().hex,
+                                       price_policy=pri_pol,num_pri_pol=0,
+                                       amount_trans=0,end_time=None)
+            return redirect('web:login')
         else:
             context={
                 'register_form':register_form,

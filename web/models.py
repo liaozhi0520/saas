@@ -43,7 +43,7 @@ class PricePolicy(models.Model):
         (3,'flur category')
     )
     category=models.PositiveSmallIntegerField(choices=CATEGORY_CHOICES)
-    title=models.CharField(max_length=10)
+    title=models.CharField(max_length=50)
     price=models.PositiveSmallIntegerField()
     proj_num=models.PositiveSmallIntegerField()
     proj_space=models.PositiveSmallIntegerField(help_text='GB')
@@ -65,7 +65,7 @@ class Transaction(models.Model):
     price_policy=models.ForeignKey(to='PricePolicy',on_delete=models.CASCADE)
     num_pri_pol=models.PositiveSmallIntegerField(verbose_name='numbers of that pricepolicy')
     amount_trans=models.PositiveSmallIntegerField()
-    start_time=models.DateTimeField(null=True,blank=True) #when you create a transaction for a new user who is not paying anything
+    start_time=models.DateTimeField(auto_now_add=True,blank=True) #when you create a transaction for a new user who is not paying anything
     end_time=models.DateTimeField(null=True,blank=True)   #he can have the pricepolicy category 1 forever, so there is no start or end time
     create_time=models.DateTimeField(auto_now_add=True)
 
