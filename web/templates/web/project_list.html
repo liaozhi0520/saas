@@ -27,11 +27,17 @@
 Project list
 {% endblock %}
 {% block content %}
-    <div class="createProj">
+    {% if crea_allow %}
+        <div class="createProj">
         <!-- Button trigger modal -->
-    <button type="button" class="btn btn-default btn-lg" data-toggle="modal" data-target="#createProjModal">
-        <i class="fa-solid fa-circle-plus"></i> Create a New Project
-    </button>
+        <button type="button" class="btn btn-default btn-lg" data-toggle="modal" data-target="#createProjModal"><i class="fa-solid fa-circle-plus"></i> Create a New Project
+        </button>
+    {% else %}
+        <div class="createProj">
+            <button  id='notAllowedCreateTooltip' type="button" class="btn btn-default btn-lg" data-toggle="tooltip" data-placement="right" disabled>You have no remain project</button>
+        </div>
+
+    {% endif %}
     </div>
     <div class="container">
         <div class="panel panel-default">
@@ -156,9 +162,7 @@ Project list
                         location.href=location.href
                     }
                     else{
-
                         var errors=res['msg']
-                        console.log(errors['name'][0])
                         for (var fieldName in errors) {
                             if (fieldName=='color'){
                                 $('.color-radio').addClass('has-error')
