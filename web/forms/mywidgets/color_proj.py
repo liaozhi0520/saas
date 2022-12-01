@@ -3,4 +3,5 @@ from django.forms import widgets
 
 class ColorWidget(forms.RadioSelect):
     class Media():
-        pass
+        js=('web/static/web/js/new_radio_widget.js',)
+

@@ -23,21 +23,28 @@ from web.models import *
 import uuid,datetime
 
 
-user=UserInfo.objects.filter(username='nwu_001').first()
-pri_pol=PricePolicy.objects.filter(id=2).first()
-tran_info = {
-        'user':user,
-        'status':1,
-        'order_num':uuid.uuid4().hex,
-        'price_policy':pri_pol,
-        'num_pri_pol':1,
-        'amount_trans':30,
-        'end_time':datetime.datetime.now()+datetime.timedelta(days=30)
-    }
-
-tran=Transaction.objects.create(**tran_info)
+# user=UserInfo.objects.filter(username='nwu_001').first()
+# pri_pol=PricePolicy.objects.filter(id=2).first()
+# tran_info = {
+#         'user':user,
+#         'status':1,
+#         'order_num':uuid.uuid4().hex,
+#         'price_policy':pri_pol,
+#         'num_pri_pol':1,
+#         'amount_trans':30,
+#         'end_time':datetime.datetime.now()+datetime.timedelta(days=30)
+#     }
+#
+# tran=Transaction.objects.create(**tran_info)
 # trans=Transaction.objects.filter(user=user).first()
 # print(trans.start_time.tzinfo) #the tzinfo is None, because I change the USE_TZ to False
 #and the time I get from the db hava no the attribute tzinfo
 #and then I can compare it to datetime.datetime.now() object.
+
+from web.models import Project,UserInfo
+
+user=UserInfo.objects.filter(username='nwu_001').first()
+proj_name_list=ProjectUser.objects.filter(user=user).values_list('project__name')
+print(type(proj_name_list))
+print(proj_name_list)
 

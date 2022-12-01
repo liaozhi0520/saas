@@ -2,10 +2,24 @@
 {% load static %}
 {% block css %}
     <style>
+        .error-msg {
+            color: red;
+            font-size: 13px;
+        }
         .createProj {
             width: 400px;
             padding: 10px 85px;
             margin: 20px auto;
+        }
+         .color-radio input[type="radio"] + .cycle {
+            display: inline-block;
+            height: 25px;
+            width: 25px;
+            border-radius: 50%;
+            border: 2px solid #dddddd;
+        }
+        .color-radio input[type="radio"]:checked + .cycle {
+            border: 2px solid black;
         }
     </style>
 {% endblock %}
@@ -15,13 +29,69 @@ Project list
 {% block content %}
     <div class="createProj">
         <!-- Button trigger modal -->
-    <button type="button" class="btn btn-default btn-lg" data-toggle="modal" data-target="#createProj">
+    <button type="button" class="btn btn-default btn-lg" data-toggle="modal" data-target="#createProjModal">
         <i class="fa-solid fa-circle-plus"></i> Create a New Project
     </button>
     </div>
-
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h2 class="panel-title">Starred Projects</h2>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <span>This is for the displayment of  numbers of starred projects</span>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h2 class="panel-title">Projects Created by ME</h2>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <span>This is for the displayment of remian numbers of projects</span>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h2 class="panel-title">Projects Involved</h2>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                    <div class="col-md-4">4 cols</div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <span>This is for the displayment of numbers of projects</span>
+            </div>
+        </div>
+    </div>
 <!-- Creating project modal -->
-    <div class="modal fade" id="createProj" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal fade" id="createProjModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -29,27 +99,80 @@ Project list
             <h4 class="modal-title" id="myModalLabel"><i class="fa-solid fa-circle-plus"></i> Create your new Project</h4>
           </div>
           <div class="modal-body">
-              {% for field in form %}
-                  {% if field.name == color %}
+              <form id="createProjForm" method="post" action="" autocomplete="on">
+                    {% csrf_token %}
+                  {% for field in form %}
+                    {% if field.name == 'color' %}
+                        <div class="form-group color-radio">
+                            <div class="row">
+                                <div class="col-md-2" style="text-align: left;font-weight: bold">{{ field.label }}</div>
+                                {% for radio in field %}
+                                    <div class="col-sm-1">
+                                            <label for="{{ radio.id_for_label }}" >
+                                                {{ radio.tag }}
+                                                <span class="cycle"></span>
+                                            </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="error-msg">{{ field.errors.0 }}</div>
+                        </div>
+                      {% else %}
+                          <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        <div class="error-msg">{{ field.errors.0 }}</div>
+                      </div>
+                      {% endif %}
 
-                  {% else %}
-                      <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    <div class="error-msg">{{ field.errors.0 }}</div>
-                  </div>
-                  {% endif %}
               {% endfor %}
+              </form>
 
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+            <button  class="btn btn-primary" id="createProjButton">Create</button>
           </div>
         </div>
       </div>
     </div>
 {% endblock %}
 {% block js %}
+    <script>
+        $(function () {
+            arr=new Array("#56b8eb","#f28033","#ebc656","#a2d148","#20BFA4","#7461c2","#20bfa3")
+            for (var i=0 ;i<7;i++){
+                $('#id_color_'+i).next().css('background-color',arr[i])
+            }
+        })
+        $('#createProjButton').click(function () {
+            $.ajax({
+                url:'{% url 'web:create_proj' %}',
+                method:'post',
+                data:$('#createProjForm').serialize(),
+                dataType:'json',
+                success:function (res){
+                    if(res['flag']){
+                        location.href=location.href
+                    }
+                    else{
 
+                        var errors=res['msg']
+                        console.log(errors['name'][0])
+                        for (var fieldName in errors) {
+                            if (fieldName=='color'){
+                                $('.color-radio').addClass('has-error')
+                                $('.color-radio .row').next().html(errors[fieldName][0])
+                            }
+                            else{
+                                $('#id_'+fieldName).parent().addClass('has-error')
+                                $('#id_'+fieldName).next().html(errors[fieldName][0])
+                            }
+                        }
+                    }
+                }
+            })
+
+        })
+    </script>
 {% endblock %}
