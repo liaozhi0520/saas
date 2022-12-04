@@ -37,8 +37,11 @@ class NewProjForm(forms.Form):
 
     def clean_name(self):
         #the name have to be unique among the user's projects
+        name = self.cleaned_data.get('name').strip()
+        if '_clickStarInvol_' in name:
+            raise ValidationError("This is the id of an elemetn in this page, can't use it.")
         from web.models import UserInfo,ProjectUser
-        name=self.cleaned_data.get('name').strip()
+
         user=UserInfo.objects.filter(username=self.request.user.username).first()
         pro_name_list=ProjectUser.objects.filter(user=user).values_list('project__name')
         for pro_name in pro_name_list:

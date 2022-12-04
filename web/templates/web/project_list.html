@@ -21,6 +21,16 @@
         .color-radio input[type="radio"]:checked + .cycle {
             border: 2px solid black;
         }
+        .thumbnail.archor {
+            height: 100px;
+            font-size: 20px;
+            text-align: center;
+            line-height: 100px;
+            font-weight: bold;
+            color: #333333;
+            text-decoration: none;
+            margin-bottom: 5px;
+        }
     </style>
 {% endblock %}
 {% block title %}
@@ -36,21 +46,29 @@ Project list
         <div class="createProj">
             <button  id='notAllowedCreateTooltip' type="button" class="btn btn-default btn-lg" data-toggle="tooltip" data-placement="right" disabled>You have no remain project</button>
         </div>
-
     {% endif %}
     </div>
     <div class="container">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h2 class="panel-title">Starred Projects</h2>
+                <h2 class="panel-title"><span ><i  class="fa-solid fa-star-of-david " ></i></span> Starred Projects</h2>
             </div>
             <div class="panel-body">
                 <div class="row">
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
+                    {% for project in projects_list_starred %}
+                        <div class="col-md-4">
+                            <div class="container">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">Panel title</h3>
+                                    </div>
+                                    <div class="panel-body">
+                                    Panel content
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
             <div class="panel-footer">
@@ -61,15 +79,28 @@ Project list
     <div class="container">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h2 class="panel-title">Projects Created by ME</h2>
+                <h2 class="panel-title"><i class="fa-solid fa-person"></i> Projects Created by ME <a  class="btn btn-default" role="button" data-toggle="collapse" href="#collapseMyPorjList" >
+                Collapse</a></h2>
             </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
+            <div class="panel-body " >
+                <div class="row collapse in" id="collapseMyPorjList">
+                    {% for project in projects_set_me %}
+                        <div class="col-sm-3">
+                                <div class="panel panel-default">
+                                    <div class="panel-body" >
+                                        <a href="#" class="thumbnail archor" style=" background-color: {{ project.get_color_display }}
+                                                "><i class="fa-solid fa-diagram-project"></i>
+                                            {{ project.name }}
+                                        </a>
+                                     </div>
+                                    <div class="panel-footer">
+                                        <span class="panel-title"><span class="starClickMe_{{ project.name }}" {% if project.star %}
+                                        style="color: goldenrod"
+                                        {% endif %} ><i  class="fa-solid fa-star-of-david " ></i></span> <span style="float:right"><i class="fa-solid fa-database"></i>{{ project.used_space }}</span></span>
+                                    </div>
+                                </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
             <div class="panel-footer">
@@ -80,19 +111,32 @@ Project list
     <div class="container">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h2 class="panel-title">Projects Involved</h2>
+                <h2 class="panel-title"><i class="fa-solid fa-people-roof"></i> Projects Involved In <a  class="btn btn-default" role="button" data-toggle="collapse" href="#collapseInvolPorjList" >
+                Collapse</a></h2>
             </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
-                    <div class="col-md-4">4 cols</div>
+            <div class="panel-body " >
+                <div class="row collapse in" id="collapseInvolPorjList">
+                    {% for project in projects_set_invol %}
+                        <div class="col-sm-3">
+                                <div class="panel panel-default">
+                                    <div class="panel-body" >
+                                        <a href="#" class="thumbnail archor" style=" background-color: {{ project.get_color_display }}
+                                                "><i class="fa-solid fa-diagram-project"></i>
+                                            {{ project.name }}
+                                        </a>
+                                     </div>
+                                    <div class="panel-footer">
+                                        <span class="panel-title"><span class="{{ project.name }}_starClickInvol_{{ project.owner }}" {% if project.star_not_creator %}
+                                        style="color: goldenrod"
+                                        {% endif %} ><i  class="fa-solid fa-star-of-david " ></i></span><span class="projOwner">{{ project.owner }}</span> <span style="float:right"><i class="fa-solid fa-database"></i>{{ project.used_space }}</span></span>
+                                    </div>
+                                </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
             <div class="panel-footer">
-                <span>This is for the displayment of numbers of projects</span>
+                <span>This is for the displayment of remian numbers of projects</span>
             </div>
         </div>
     </div>
@@ -150,6 +194,92 @@ Project list
             for (var i=0 ;i<7;i++){
                 $('#id_color_'+i).next().css('background-color',arr[i])
             }
+            $('.thumbnail').mouseover(function () {
+                $(this).children().addClass('fa-bounce')
+            })
+            $('.thumbnail').mouseout(function () {
+                $(this).children().removeClass('fa-bounce')
+            })
+            $("[class^='starClickMe_']").click(function () {
+                const rawProjectName=$(this).attr('class')
+                const projNamePattern=/starClickMe_(.*)/
+                const projectName=projNamePattern.exec(rawProjectName)[1]
+                $(this).children().addClass('fa-spin')
+                $.ajax({
+                    url: '{%  url 'web:star_me' %}',
+                    type: 'post',
+                    data:{
+                        'project_name':projectName,
+                        'csrfmiddlewaretoken':$('[name="csrfmiddlewaretoken"]').val()
+                    },
+                    dataType: 'json',
+                    success:function (res) {
+                        if(res['flag']){
+                            $('.starClickMe_'+res['projectName']).css('color','')
+                            $('.starClickMe_'+res['projectName']).children().removeClass('fa-spin')
+                        }
+                        else{
+                            $('.starClickMe_'+res['projectName']).css('color','goldenrod')
+                            $('.starClickMe_'+res['projectName']).children().removeClass('fa-spin')
+                        }
+                    }
+                })
+            })
+            $("[class*='starClickInvol_']").click(function () {
+                const rawProjectName=$(this).attr('class')
+                const projNameOwnerPattern=/(.*)_starClickInvol_(.*)/
+                const projectName=projNameOwnerPattern.exec(rawProjectName)[1]
+                const projectOwner=projNameOwnerPattern.exec(rawProjectName)[2]
+                $(this).children().addClass('fa-spin')
+                $.ajax({
+                    url: '{%  url 'web:star_invol' %}',
+                    type: 'post',
+                    data:{
+                        'project_name':projectName,
+                        'project_owner':projectOwner,
+                        'csrfmiddlewaretoken':$('[name=csrfmiddlewaretoken]').val()
+                    },
+                    dataType: 'json',
+                    success:function (res) {
+                        if(res['flag']){
+                            $('.'+res['projectName']+'_starClickInvol_'+res['projectOwner']).css('color','')
+                            $('.'+res['projectName']+'_starClickInvol_'+res['projectOwner']).children().removeClass('fa-spin')
+                        }
+                        else{
+                            $('.'+res['projectName']+'_starClickInvol_'+res['projectOwner']).css('color','goldenrod')
+                            $('.'+res['projectName']+'_starClickInvol_'+res['projectOwner']).children().removeClass('fa-spin')
+                        }
+                    }
+                })
+            })
+
+        $('#createProjButton').click(function () {
+            $.ajax({
+                url:'{% url 'web:create_proj' %}',
+                method:'post',
+                data:$('#createProjForm').serialize(),
+                dataType:'json',
+                success:function (res){
+                    if(res['flag']){
+                        location.href=location.href
+                    }
+                    else{
+                        var errors=res['msg']
+                        for (var fieldName in errors) {
+                            if (fieldName=='color'){
+                                $('.color-radio').addClass('has-error')
+                                $('.color-radio .row').next().html(errors[fieldName][0])
+                            }
+                            else{
+                                $('#id_'+fieldName).parent().addClass('has-error')
+                                $('#id_'+fieldName).next().html(errors[fieldName][0])
+                            }
+                        }
+                    }
+                }
+            })
+
+        })
         })
         $('#createProjButton').click(function () {
             $.ajax({

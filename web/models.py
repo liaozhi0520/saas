@@ -92,7 +92,7 @@ class Project(models.Model):
         (0,'not stared'),
         (1,'stared')
     )
-    name=models.CharField(max_length=32)
+    name=models.CharField(max_length=15)
     description=models.CharField(max_length=128)
     color=models.CharField(max_length=7,choices=COLOR_PROJ)
     used_space=models.BigIntegerField(help_text="Bytes")

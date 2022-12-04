@@ -41,10 +41,9 @@ import uuid,datetime
 #and the time I get from the db hava no the attribute tzinfo
 #and then I can compare it to datetime.datetime.now() object.
 
-from web.models import Project,UserInfo
+from web.models import Project,UserInfo,ProjectUser
 
 user=UserInfo.objects.filter(username='nwu_001').first()
-proj_name_list=ProjectUser.objects.filter(user=user).values_list('project__name')
-print(type(proj_name_list))
-print(proj_name_list)
+project=Project.objects.filter(name='nwu_002_test1').first()
+ProjectUser.objects.create(user=user,project=project,star=0,)
 

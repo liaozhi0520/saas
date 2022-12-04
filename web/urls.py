@@ -13,9 +13,9 @@ urlpatterns=[
     re_path(r'^verify_old_password',VerifyOldPwdView.as_view(),name='verify_old_pwd'),
     re_path(r'^logout/$',LogoutView.as_view(),name='logout'),
 
-
     ## project center
     re_path(r'^project/list/$',ProjectListView.as_view(),name='project_list'),
     re_path(r'^project/create_proj/$', CreateProjView.as_view(), name='create_proj'),
-
+    re_path(r'^project/starme/$',StarMyProjectView.as_view(),name='star_me'),
+    re_path(r'^project/starinvol/$',StarInvolProjectView.as_view(),name='star_invol'),
 ]

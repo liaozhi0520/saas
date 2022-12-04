@@ -17,7 +17,10 @@ class UserStatusAuth(MiddlewareMixin):
             #Yes,we can
             for transac in transacs:
                 # we store the object pricepolicy to the attribute of request.user.status
-                if transac.end_time > datetime.datetime.now() or transac.end_time is None:
+                if not transac.end_time:
+                    request.user.status = transac.price_policy
+                    break
+                if transac.end_time > datetime.datetime.now() :
                     request.user.status = transac.price_policy
                     break
             return
