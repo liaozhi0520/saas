@@ -48,34 +48,58 @@ Project list
         </div>
     {% endif %}
     </div>
+
     <div class="container">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h2 class="panel-title"><span ><i  class="fa-solid fa-star-of-david " ></i></span> Starred Projects</h2>
+                <h2 class="panel-title"><span style="color:goldenrod"><i class="fa-solid fa-star-of-david"></i></span> Starred Project <a  class="btn btn-default" role="button" data-toggle="collapse" href="#collapseStarPorjList" >
+                Collapse</a></h2>
             </div>
-            <div class="panel-body">
-                <div class="row">
-                    {% for project in projects_list_starred %}
-                        <div class="col-md-4">
-                            <div class="container">
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <h3 class="panel-title">Panel title</h3>
-                                    </div>
-                                    <div class="panel-body">
-                                    Panel content
+            <div class="panel-body " >
+                <div class="row collapse in" id="collapseStarPorjList">
+                    {% for project in projects_set_starred %}
+                        <div class="col-md-3">
+                                {% if project.owner %}
+                                    <div class="panel panel-default">
+                                    <div class="panel-body" >
+                                        <a href="{% url 'web:dashboard' project_id=project.id %}" class="thumbnail archor" style=" background-color: {{ project.get_color_display }}
+                                                "><i class="fa-solid fa-diagram-project"></i>
+                                            {{ project.name }}
+                                        </a>
                                      </div>
+                                    <div class="panel-footer">
+                                        <span class="panel-title"><span class="{{ project.name }}_starClickInvol_{{ project.owner }}" {% if project.star_not_creator %}
+                                        style="color: goldenrod"
+                                        {% endif %} ><i  class="fa-solid fa-star-of-david " ></i></span><span class="projOwner">{{ project.owner }}</span> <span style="float:right"><i class="fa-solid fa-database"></i>{{ project.used_space }}</span></span>
+                                    </div>
                                 </div>
-                            </div>
+
+                                {% else %}
+                                    <div class="panel panel-default">
+                                    <div class="panel-body" >
+                                        <a href="{% url 'web:dashboard' project_id=project.id %}" class="thumbnail archor" style=" background-color: {{ project.get_color_display }}
+                                                "><i class="fa-solid fa-diagram-project"></i>
+                                            {{ project.name }}
+                                        </a>
+                                     </div>
+                                    <div class="panel-footer">
+                                        <span class="panel-title"><span class="starClickMe_{{ project.name }}" {% if project.star %}
+                                        style="color: goldenrod"
+                                        {% endif %} ><i  class="fa-solid fa-star-of-david " ></i></span> <span style="float:right"><i class="fa-solid fa-database"></i>{{ project.used_space }}</span></span>
+                                    </div>
+                                </div>
+
+                                {% endif %}
                         </div>
                     {% endfor %}
                 </div>
             </div>
             <div class="panel-footer">
-                <span>This is for the displayment of  numbers of starred projects</span>
+                <span>This is for the displayment of remian numbers of projects</span>
             </div>
         </div>
     </div>
+
     <div class="container">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -85,10 +109,10 @@ Project list
             <div class="panel-body " >
                 <div class="row collapse in" id="collapseMyPorjList">
                     {% for project in projects_set_me %}
-                        <div class="col-sm-3">
+                        <div class="col-md-3">
                                 <div class="panel panel-default">
                                     <div class="panel-body" >
-                                        <a href="#" class="thumbnail archor" style=" background-color: {{ project.get_color_display }}
+                                        <a href="{% url 'web:dashboard' project_id=project.id %}" class="thumbnail archor" style=" background-color: {{ project.get_color_display }}
                                                 "><i class="fa-solid fa-diagram-project"></i>
                                             {{ project.name }}
                                         </a>
@@ -117,10 +141,10 @@ Project list
             <div class="panel-body " >
                 <div class="row collapse in" id="collapseInvolPorjList">
                     {% for project in projects_set_invol %}
-                        <div class="col-sm-3">
+                        <div class="col-md-3">
                                 <div class="panel panel-default">
                                     <div class="panel-body" >
-                                        <a href="#" class="thumbnail archor" style=" background-color: {{ project.get_color_display }}
+                                        <a href="{% url 'web:dashboard' project_id=project.id %}" class="thumbnail archor" style=" background-color: {{ project.get_color_display }}
                                                 "><i class="fa-solid fa-diagram-project"></i>
                                             {{ project.name }}
                                         </a>

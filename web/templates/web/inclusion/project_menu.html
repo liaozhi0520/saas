@@ -1,0 +1,18 @@
+<li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-circle-chevron-down"></i> Projects<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><i class="fa-solid fa-person"></i> My projects</li>
+            <li role="separator" class="divider"></li>
+            {% for project in project_list_me %}
+                <li><a href="{% url 'web:dashboard' project_id=project.id %}" >{{ project.name }}
+                </a></li>
+            {% endfor %}
+
+            <li><i class="fa-solid fa-people-roof"></i> Projects Involved</li>
+          <li role="separator" class="divider"></li>
+            {% for project in project_list_invol %}
+                <li><a href="{% url 'web:dashboard' project_id=project.id %}" >
+                {{ project.name }}</a></li>
+            {% endfor %}
+          </ul>
+</li>

@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'web.apps.WebConfig'
+    'web.apps.WebConfig',
 ]
 
 MIDDLEWARE = [
@@ -53,7 +53,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'middleware.mymiddleware.UserStatusAuth'
+    'middleware.mymiddleware.UserStatusAuth',
+    'middleware.mymiddleware.ProjectAuth',
+
 ]
 
 ROOT_URLCONF = 'saas.urls'

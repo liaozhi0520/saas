@@ -13,33 +13,24 @@ class LoginRequiredMixin(object):
 
 class ProjectListView(LoginRequiredMixin,View):
     def get(self,request,*args,**kwargs):
-        from web.models import UserInfo,Project,ProjectUser
-        user=UserInfo.objects.filter(username=request.user.username).first()
-        projects_me=Project.objects.filter(creator=user)
-        projectsuser_invol=ProjectUser.objects.filter(user=user)
-        #the values_list() will get the id of entries automatically
-        projects_dict={'me':set({}),'invol':set({}),'starred':set({})}
-        for project in projects_me:
-            if project.star==1:
-                projects_dict['starred'].add(project)
-            projects_dict['me'].add(project)
-        for projectuser in projectsuser_invol:
+        from web.models import Project,ProjectUser
+        projectuser_me_plus_invol=ProjectUser.objects.filter(user=request.tracer.user)
+        project_dict={'me':[],'invol':[],'star':[]}
+        for projectuser in projectuser_me_plus_invol:
             project=projectuser.project
-            project.star_not_creator=projectuser.star
-            project.owner=project.creator.username
-            projects_dict['invol'].add(project)
-            if projectuser.star:
-                projects_dict['starred'].add(project)
-        del_projects=[]
-        for project_invol in projects_dict.get('invol'):
-            for project_me in projects_dict.get('me'):
-                if project_invol.owner==project_me.creator.username:
-                    del_projects.append(project_invol)
-                    break
-        for del_proj in del_projects:
-            projects_dict.get('invol').remove(del_proj)
-        proj_num=len(projects_me)
-        if proj_num<request.user.status.proj_num:
+            project_creator=project.creator
+            if project_creator.username==request.tracer.user.username:
+                project_dict['me'].append(project)
+                if project.star:
+                    project_dict['star'].append(project)
+            else:
+                project.owner=project_creator.username
+                project.star_not_creator=projectuser.star
+                project_dict['invol'].append(project)
+                if project.star_not_creator:
+                    project_dict['star'].append(project)
+        proj_num=len(project_dict['me'])
+        if proj_num<request.tracer.user_status.proj_num:
             crea_allow=True
         else:
             crea_allow=False
@@ -47,10 +38,9 @@ class ProjectListView(LoginRequiredMixin,View):
         context={
             'form':new_proj_form,
             'crea_allow':crea_allow,
-            'projects_set_me':projects_dict.get('me'),
-            'projects_set_invol': projects_dict.get('invol'),
-            'projects_set_starred': projects_dict.get('starred'),
-            'projects_set_invol_creator':projects_dict.get('invol_creator')
+            'projects_set_me':project_dict.get('me'),
+            'projects_set_invol': project_dict.get('invol'),
+            'projects_set_starred': project_dict.get('star'),
         }
         return render(request,r'web/project_list.html',context)
 
@@ -113,14 +103,17 @@ class StarMyProjectView(View):
 #star others' proejects view
 class StarInvolProjectView(View):
     def post(self, request, *args, **kwargs):
-        project_owner=request.POST.get('project_owner')
-        project_name=request.POST.get('project_name')
-        from web.models import ProjectUser,UserInfo,Project
-        user=UserInfo.objects.filter(username=request.user.username).first()
-        creator=UserInfo.objects.filter(username=project_owner).first()
-        project=Project.objects.filter(name=project_name,creator=creator).first()
-        projectuser=ProjectUser.objects.filter(project=project,user=user).first()
-        res={}
+        res = {}
+        try:
+            project_owner = request.POST.get('project_owner')
+            project_name = request.POST.get('project_name')
+            from web.models import ProjectUser, UserInfo, Project
+            user = UserInfo.objects.filter(username=request.user.username).first()
+            projectuser = ProjectUser.objects.filter(project__name=project_name,
+                                                     project__creator__username=project_owner, user=user).first()
+        except Exception:
+            res['flag']=False
+            return JsonResponse(res)
         res['projectName'] = project_name
         res['projectOwner'] = project_owner
         if projectuser.star:
@@ -133,3 +126,28 @@ class StarInvolProjectView(View):
             projectuser.save()
         return JsonResponse(res)
 
+class DashboardView(LoginRequiredMixin,View):
+    def get(self,request,*args,**kwargs):
+        return render(request,r'web/dashboard.html',{'request':request})
+
+
+class IssuesView(LoginRequiredMixin,View):
+    def get(self,request,*args,**kwargs):
+        return render(request,r'web/issues.html',{'request':request})
+
+class StatisticsView(LoginRequiredMixin,View):
+    def get(self, request, *args, **kwargs):
+        return render(request, r'web/statistics.html', {'request': request})
+
+
+class WikiView(LoginRequiredMixin,View):
+    def get(self, request, *args, **kwargs):
+        return render(request, r'web/wiki.html', {'request': request})
+
+class FileView(LoginRequiredMixin,View):
+    def get(self, request, *args, **kwargs):
+        return render(request, r'web/file.html', {'request': request})
+
+class SettingView(LoginRequiredMixin,View):
+    def get(self, request, *args, **kwargs):
+        return render(request, r'web/setting.html', {'request': request})

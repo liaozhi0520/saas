@@ -1,0 +1,5 @@
+<li><a href="{% url 'web:dashboard' project_id=request.tracer.project.id %}">{{ request.tracer.project.name }}</a></li>
+{% for data in data_list %}
+<li class="{{ data.class }}" ><a href="{{ data.url}}" >
+                <i class="{{ data.icon }}"></i> {{ data.title}}</a></li>
+{% endfor %}

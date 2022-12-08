@@ -1,10 +1,18 @@
 import datetime
-
 from django.utils.deprecation import MiddlewareMixin
+from django.shortcuts import redirect
+from django.urls import reverse
 
+class Tracer(object):
+    def __init__(self):
+        self.user=None  #it stores the userinfo instance, because the request.user is not a userinfo instance
+        self.user_status=None  #it stores the pricepolicy instance
+        self.project=None       #it stores the project instance if the user request a project legally
+        self.project_owner=None #it indicates the whether the user is the owner of this project
 
 class UserStatusAuth(MiddlewareMixin):
     def process_request(self,request):
+        request.tracer=Tracer()
         from django.contrib.auth.models import AnonymousUser
         if isinstance(request.user,AnonymousUser):
             return
@@ -12,19 +20,43 @@ class UserStatusAuth(MiddlewareMixin):
             from web.models import Transaction, UserInfo
             user_id = request.user.id
             user_obj = UserInfo.objects.filter(id=user_id).first()
+            request.tracer.user=user_obj
             transacs=Transaction.objects.filter(user=user_obj).order_by('-price_policy__id')
             #can I order the results by a field in the foreign table?Let's try it.
             #Yes,we can
             for transac in transacs:
                 # we store the object pricepolicy to the attribute of request.user.status
                 if not transac.end_time:
-                    request.user.status = transac.price_policy
+                    request.tracer.user_status = transac.price_policy
                     break
                 if transac.end_time > datetime.datetime.now() :
-                    request.user.status = transac.price_policy
+                    request.tracer.user_status = transac.price_policy
                     break
             return
             #consider this case: if a user is in the status of pripol2, but he want to upgrade
             #his priviledge to pripol3, So the transaction will have two inexpiry entries and how
             #the hell we should do?
             #when he upgrade his pripol to 3,the endtime of pripol should be extended
+
+class ProjectAuth(MiddlewareMixin):
+
+    def process_view(self,request,view_func,view_args,view_kwargs):
+        url=request.path_info
+        project_id=view_kwargs.get('project_id')
+        if not url.startswith(r'/manage/'):
+            return
+        from web.models import ProjectUser
+        projectuser_obj=ProjectUser.objects.filter(project__id=project_id,user=request.tracer.user).first()
+        if not projectuser_obj:
+            return redirect(reverse('web:project_list'))
+        else:
+            request.tracer.project = projectuser_obj.project
+            if projectuser_obj.project.creator==request.tracer.user:
+                request.tracer.project_owner=True
+            else:
+                request.tracer.project_owner=False
+            return
+
+
+
+
