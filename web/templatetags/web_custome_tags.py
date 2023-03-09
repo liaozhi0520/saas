@@ -30,3 +30,23 @@ def manage_menu_tag(request):
 # why do I need to use the inclusion tag? Because the DTL is not powerful enough, if I need some data generate from the
 #context passed from the view and the DTL can't implement the genneration logic, then the inclusion_tag can help.
 #Because the python power is super cool.
+
+@register.inclusion_tag(r'web/inclusion/wiki_destination.html')
+def wiki_destination_tag(wiki_group,wiki_id,request):
+    from web.models import Wiki
+    if wiki_id=='0':
+        if wiki_group=='public-wiki':
+            msg='Adding to Group: Public Wikis'
+        if wiki_group=='individual-wiki':
+            msg='Adding to Group: Individual Wikis'
+    else:
+        wiki=Wiki.objects.filter(id=wiki_id,project=request.tracer.project).first()
+        if not wiki:
+            msg = "You may be in an attempt to add a invalid wiki to others' proejct. But it's impossible."
+            return {'msg':msg}
+        wiki_title=wiki.title
+        if wiki_group == 'public-wiki':
+            msg='Add a subpage of wiki {} from Public Wikis'.format(wiki_title)
+        if wiki_group == 'individual-wiki':
+            msg='Add a subpage of wiki {} from Individual Wikis'.format(wiki_title)
+    return {'msg':msg}

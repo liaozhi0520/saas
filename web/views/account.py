@@ -137,14 +137,13 @@ class GrapCheckCodeView(View):
 
 class TestView(View):
     def get(self,request,*args,**kwargs):
-        return HttpResponse('all done')
+        return render(request,r'web/test_extends.html')
     def post(self,request):
         print(request.FILES)
         return HttpResponse('all done')
 
 class IndexView(View):
     def get(self,request,*args,**kwargs):
-
         return render(request,r'web/index.html',{'requset':request})
 
 class ResetPwdView(LoginRequiredMixin,View):

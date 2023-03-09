@@ -40,14 +40,11 @@ class NewProjForm(forms.Form):
         name = self.cleaned_data.get('name').strip()
         if '_clickStarInvol_' in name:
             raise ValidationError("This is the id of an elemetn in this page, can't use it.")
-        from web.models import UserInfo,ProjectUser
-
-        user=UserInfo.objects.filter(username=self.request.user.username).first()
-        pro_name_list=ProjectUser.objects.filter(user=user).values_list('project__name')
-        for pro_name in pro_name_list:
-            if pro_name[0] == name:
+        from web.models import Project
+        user=self.request.user
+        if Project.objects.filter(creator=user).first():
                 raise ValidationError('"{}" already being used in your projects'.format(name))
-        return {'user':user,'name':name}
+        return name
 
     def clean_color(self):
         color=self.cleaned_data.get('color').strip()
@@ -70,6 +67,36 @@ class NewProjForm(forms.Form):
         return desc
 
 
+
+
+class WikiAddForm(forms.Form):
+    title=forms.CharField(
+        label='Title',
+        max_length=20,
+        widget=widgets.TextInput(attrs={'class':'form-control','placeholder':'Select a Fancy Name for your Wiki. Max length=20'})
+    )
+    content=forms.CharField(
+        label='Content',
+        max_length=3000,
+        widget=widgets.Textarea(attrs={'class':'form-control','rows':40,'id':'editor'})
+    )
+    def __init__(self,request,wiki_view=False,*args,**kwargs):
+        super(WikiAddForm, self).__init__(*args,**kwargs)
+        self.request=request
+        self.wiki_view=wiki_view
+
+    def clean_title(self):
+        title=self.cleaned_data.get('title').strip()
+        if self.wiki_view:
+            return title
+        from web.models import Wiki
+        if Wiki.objects.filter(project=self.request.tracer.project,title=title):
+            raise ValidationError('the title name is duplicated in your project.')
+        return title
+
+    def clean_content(self):
+        content=self.cleaned_data.get('content').strip()
+        return content
 
 
 

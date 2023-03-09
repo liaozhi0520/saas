@@ -1,4 +1,171 @@
 {% extends 'web/layout/manage.html' %}
+{% load web_custome_tags %}
+{% load static %}
+{% block css %}
+    <style>
+         .wiki-tree .public-wiki {
+            min-height: 200px;
+        }
+         .wiki-tree .individual-wiki{
+             min-height: 300px;
+         }
+        .wiki .panel {
+            min-height: 700px;
+        }
+        #editor{
+            min-height: 400px;
+            border-top: #2b669a 1px solid;
+            border-bottom: #2b669a 1px solid;
+        }
+
+    </style>
+{% endblock %}
+{% block title %}
+    WIKI
+{% endblock %}
 {% block content %}
-<h1>Wiki</h1>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4  wiki-tree">
+                <div class="panel panel-primary">
+                    <div class="panel-heading" style="text-align: center">Wiki Tree</div>
+                     <div class="panel-body">
+                        <div  class="panel panel-default public-wiki">
+                            <div class="panel-heading">
+                                <div class="panel-title">Public Wikis  <a href="/manage/{{ request.tracer.project.id }}/wiki/add/public-wiki/0"><i class="fa-solid fa-plus"></i></a></div>
+                            </div>
+                            <div class="panel-body">
+                                <ul >
+
+                                </ul>
+                            </div>
+                        </div>
+                         <div  class="panel panel-default individual-wiki">
+                            <div class="panel-heading">
+                                <div class="panel-title">Individual Wikis  <a href="/manage/{{ request.tracer.project.id }}/wiki/add/individual-wiki/0"><i class="fa-solid fa-plus"></i></a></div>
+                            </div>
+                             <div class="panel-body">
+                                 <ul>
+
+                                 </ul>
+                             </div>
+                        </div>
+                     </div>
+                </div>
+            </div>
+            <div class="col-md-8 wiki">
+                <div class="panel panel-primary">
+                    <div class="panel-heading" style="text-align: center">Wiki</div>
+                     <div class="panel-body">
+                        {% if wiki_view_bool %}
+                            <form  action="{% url 'web:wiki_update' project_id=request.tracer.project.id wiki_id=wiki_id %}" method="post" autocomplete="on">
+                                {% csrf_token %}
+                                {% for field in wiki_form %}
+                                    <div class="form-group">
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                        <span class="err-msg">{{ field.errors.0 }}</span>
+                                    </div>
+                                {% endfor %}
+                                <div class="form-group">
+                                    <div class="col-md-3">
+                                        <button type="submit" class="btn btn-primary">
+                                            Update
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        {% endif %}
+                       {% if wiki_add_bool %}
+                            <form action="" method="post" autocomplete="on">
+                                <div style="text-align: center">
+                                    {% wiki_destination_tag wiki_group wiki_id request%}
+                                </div>
+                                {% csrf_token %}
+                                {% for field in new_wiki_form %}
+                                    <div class="form-group">
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                        <span class="err-msg">{{ field.errors.0 }}</span>
+                                    </div>
+                                {% endfor %}
+                                <div class="form-group">
+                                    <div class="col-md-3">
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                    </div>
+                                </div>
+                            </form>
+                        {% endif %}
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'web/plugin/ckeditor/ckeditor.js' %}">
+    </script>
+    <script>
+        var styleFilePath='default:'+'{% static 'web/plugin/ckeditor/styles.js' %}'
+        var editor=CKEDITOR.replace( 'editor',{
+            stylesSet: styleFilePath,
+
+        });
+        editor.on('change',(evt)=>{
+            console.log('Now the content have '+ editor.getData().length+' bytes.')
+            //may be I would put some automatic save code here
+        })
+        setTimeout(()=>{
+            editor.setData('<h3>Got you</h3>')
+        },3000)
+    </script>
+    <script>
+        function createWikiTree(wikiTree,wikiTreeType){
+            var project_id='{{ request.tracer.project.id }}'
+            wikiTree.forEach(function(wiki){
+                    var hrefView='/manage/'+project_id+'/wiki/view/'+wiki['id']
+                    var hrefAdd='/manage/'+project_id+'/wiki/add/'+wikiTreeType+'/'+wiki['id']
+                    var li=$('<li>').attr('id','id_'+wiki['id']).append(
+                        $('<a>').attr('href',hrefView).text(wiki['title'])
+                    ). append(
+                        $('<a>').attr('href',hrefAdd ).attr('class','wikiAdd').html('<i class="fa-solid fa-plus"></i>')
+                    ).append(
+                        $('<ul>')
+                    )
+                    if (!wiki['pwiki__id']){
+                        $('.wiki-tree .'+wikiTreeType+' .panel-body>ul').append(li)
+                    }
+                    else{
+                        $('#id_'+wiki['pwiki__id']+'>ul').append(li)
+                    }
+                 })
+        }
+        $(function(){
+            $.ajax({
+                method:'get',
+                url:'{% url 'web:wiki_tree' project_id=request.tracer.project.id %}',
+                dataType:'json',
+                success:function (res){
+                    const wikiTree=res['wikiTree']
+                    const wikiTreePub=new Array()
+                    const wikiTreeInd=new Array()
+                    wikiTree.forEach(function(wiki){
+                        if (wiki['category']=='P'){
+                            wikiTreePub.push(wiki)
+                        }
+                        else{
+                            wikiTreeInd.push(wiki)
+                        }
+                    })
+                    createWikiTree(wikiTreePub,'public-wiki')
+                    createWikiTree(wikiTreeInd,'individual-wiki')
+                }
+            })
+        })
+    </script>
+    <script>
+        $('#updateWiki').click(function () {
+
+        })
+    </script>
 {% endblock %}

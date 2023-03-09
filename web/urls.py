@@ -1,6 +1,7 @@
 from django.urls import re_path
 from web.views.account import *
 from web.views.project_center import *
+from web.views.files import *
 from django.conf.urls import include
 
 
@@ -28,7 +29,12 @@ urlpatterns=[
         re_path(r'^issues/$',IssuesView.as_view(),name='issues'),
         re_path(r'^statistics/$',StatisticsView.as_view(),name='statistics'),
         re_path(r'^wiki/$',WikiView.as_view(),name='wiki'),
-        re_path(r'^file/$',FileView.as_view(),name='file'),
+        re_path(r'^wiki/tree/$',WikiTreeView.as_view(),name='wiki_tree'),
+        re_path(r'^wiki/add/(?P<wiki_group>public-wiki|individual-wiki)/(?P<wiki_id>\d+)/$',WikiAddView.as_view(),name='wiki_add'),
+        re_path(r'^wiki/view/(?P<wiki_id>\d+)/$',WikiContentView.as_view(),name='wiki_view'),
+        re_path(r'wiki/update/(?P<wiki_id>\d+)/$',WikiUpdateView.as_view(),name='wiki_update'),
+        re_path(r'^file/view$',FileView.as_view(),name='file'),
+        re_path(r'^file/upload$',FileUploadView.as_view(),name='file_upload'),
         re_path(r'^setting/$',SettingView.as_view(),name='setting')
     ],None)),
 ]

@@ -38,9 +38,8 @@ class ValidationPhone(models.Model):
 
 class PricePolicy(models.Model):
     CATEGORY_CHOICES=(
-        (1,'individual free'),
+        (1,'free'),
         (2,'charged'),
-        (3,'flur category')
     )
     category=models.PositiveSmallIntegerField(choices=CATEGORY_CHOICES)
     title=models.CharField(max_length=50)
@@ -98,6 +97,11 @@ class Project(models.Model):
     used_space=models.BigIntegerField(help_text="Bytes")
     star=models.PositiveSmallIntegerField(choices=STRAED_STATUS)
     creator=models.ForeignKey(to='UserInfo',on_delete=False)
+    bucket_name=models.CharField(max_length=64)
+    class Meta:
+        constraints=[
+            models.UniqueConstraint(fields=['name','creator'],name='unique_project_name')
+        ]
 
 class ProjectUser(models.Model):
     STRAED_STATUS = (
@@ -112,3 +116,44 @@ class ProjectUser(models.Model):
 #now when I take the token  request.user.status and get into the project center
 #the page will show me that option1 to create a project
 #option2 is the
+
+class Wiki(models.Model):
+    WIKI_CATEGORY=(
+        ('P','Public'),
+        ('I','Individual')
+    )
+    title=models.CharField(max_length=20)
+    content=models.CharField(max_length=3000)
+    project=models.ForeignKey(to='Project',on_delete=models.CASCADE)
+    category=models.CharField(max_length=1,choices=WIKI_CATEGORY,default='P')
+    creator=models.ForeignKey(to='UserInfo',on_delete=models.CASCADE)
+    pwiki=models.ForeignKey(to='self',on_delete=models.CASCADE,null=True,blank=True)
+    class Meta:
+        constraints=[
+            models.UniqueConstraint(fields=['title','project'],name='wiki_unique_in_project')
+        ]
+    #what'st the related name for?
+    #when you want to check how many cwiki a pwiki have? You may want to do it like this:
+    #Wiki.objects.filter(name='xxx').first().wiki_set.all()
+    #反向查询用的是 modelname_set  (同理的是ForeignKey)
+    #正向查询用的是 Wiki.objects.filter(name='xxx').first().pwiki
+
+class File(models.Model):
+    FILE_TYPE=(
+        (1,'file'),
+        (2,'folder'))
+    project = models.ForeignKey(to='Project', on_delete=models.CASCADE)
+    parent_file=models.ForeignKey(to='File',related_name='subfiles',on_delete=models.CASCADE,null=True)
+    name=models.CharField(max_length=64)
+    file_size=models.BigIntegerField(help_text='Bytes')
+    file_url=models.CharField(max_length=256,null=True)
+    file_type=models.PositiveSmallIntegerField(choices=FILE_TYPE)
+    file_ext=models.CharField(max_length=32,null=True)
+    creator=models.ForeignKey(to='UserInfo',on_delete=models.CASCADE)
+    creating_time=models.DateTimeField(auto_now_add=True)
+    class meta:
+        constraints=[
+            models.UniqueConstraint(fields=('name','project','parent_file'),name='InSameProjectAndSameFolderNameUnique'),
+            models.CheckConstraint(check=(models.Q(file_type='folder') & models.Q(file_size=0)&models.Q(file_url=None)&models.Q(file_ext=None)),name='FolderSize0'),
+            #this constraint will not change the model scheme, so no change detected
+        ]

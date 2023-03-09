@@ -5,7 +5,6 @@ from django.urls import reverse
 
 class Tracer(object):
     def __init__(self):
-        self.user=None  #it stores the userinfo instance, because the request.user is not a userinfo instance
         self.user_status=None  #it stores the pricepolicy instance
         self.project=None       #it stores the project instance if the user request a project legally
         self.project_owner=None #it indicates the whether the user is the owner of this project
@@ -17,11 +16,8 @@ class UserStatusAuth(MiddlewareMixin):
         if isinstance(request.user,AnonymousUser):
             return
         else:
-            from web.models import Transaction, UserInfo
-            user_id = request.user.id
-            user_obj = UserInfo.objects.filter(id=user_id).first()
-            request.tracer.user=user_obj
-            transacs=Transaction.objects.filter(user=user_obj).order_by('-price_policy__id')
+            from web.models import Transaction
+            transacs=Transaction.objects.filter(user=request.user).order_by('-price_policy__id')
             #can I order the results by a field in the foreign table?Let's try it.
             #Yes,we can
             for transac in transacs:
@@ -42,16 +38,16 @@ class ProjectAuth(MiddlewareMixin):
 
     def process_view(self,request,view_func,view_args,view_kwargs):
         url=request.path_info
-        project_id=view_kwargs.get('project_id')
         if not url.startswith(r'/manage/'):
             return
+        project_id = view_kwargs.get('project_id')
         from web.models import ProjectUser
-        projectuser_obj=ProjectUser.objects.filter(project__id=project_id,user=request.tracer.user).first()
+        projectuser_obj=ProjectUser.objects.filter(project__id=project_id,user=request.user).first()
         if not projectuser_obj:
             return redirect(reverse('web:project_list'))
         else:
             request.tracer.project = projectuser_obj.project
-            if projectuser_obj.project.creator==request.tracer.user:
+            if projectuser_obj.project.creator==request.user:
                 request.tracer.project_owner=True
             else:
                 request.tracer.project_owner=False

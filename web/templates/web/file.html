@@ -1,4 +1,259 @@
 {% extends 'web/layout/manage.html' %}
+{% load static %}
+{% block title %}
+File system for project
+{% endblock %}
+{% block css %}
+    <style>
+        .fileTree{
+            width: 100%;
+            min-height: 550px;
+            overflow: hidden;
+            border: 0;
+            background-color: #f0f0f0;
+        }
+        .fileActivity{
+            min-height: 800px;
+        }
+        .panelHeadingHeight{
+            height:49.6px
+        }
+        .previewContainer{
+            width: 100%;
+            min-height: 200px;
+            background-color: #f1f1f1;
+			border: 2px solid #333;
+			border-radius: 10px;
+            box-sizing: border-box;
+            margin-top: 10px;
+        }
+        .base{
+            position: relative;
+            height: 172px;
+        }
+        .mask{
+            position:absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index:100;
+            border-radius: 10px;
+            backdrop-filter: blur(2px);
+            background-color: rgba(255,255,255,0.5);
+        }
+    </style>
+    <link href="{% static 'web/plugin/dropZone/dropzone.min.css' %}" rel="stylesheet">
+{% endblock %}
 {% block content %}
-<h1>File</h1>
+
+    <div class="container-fluid">
+        <div class="col-md-4">
+            <div class="panel panel-success ">
+                <div class="panelHeadingHeight panel-heading">
+                    <span class="panel-title"><b>Files Tree</b></span>
+
+                </div>
+                <div class="fileTree" id="fileTree">
+
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="panel panel-success fileActivity">
+                <div class="panelHeadingHeight panel-heading">
+                    <h3 class="panel-title"><b>Files Activity</b></h3>
+                </div>
+                <div class="panel-body" id="fileActivity">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    {#upload modal#}
+    <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Upload files</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="{% url 'web:file_upload' request.tracer.project.id %}" class="dropzone" method="post" id="upload-file" multiple enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="uploadFileParentId" value="">
+                        <input type="submit" style="width: 100%" class="btn btn-primary">
+                        <div style="width: 100%;text-align: center;margin-top: 10px" id="fileSelectorButton" class="btn btn-success">Click Me</div>
+                        <div class="clearfix previewContainer dropzone-previews" id="previewContainer" >
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    // create folder modal
+    <div class="modal fade" id="createFolderModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Create Folder</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form" autocomplete="on" action="#">
+                        {% csrf_token %}
+                        <input type="hidden" name="createFolderParentId" value="">
+                        <div class="form-group">
+                                <label class="sr-only" for="exampleInputAmount">New Folder Name</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">Folder Name</div>
+                                    <input type="text" class="form-control" id="folderName" name="folderName" placeholder="Folder Name">
+                                </div>
+                                <div class="error-msg">
+                                </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary form-control">Create</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'web/plugin/dropZone/dropzone.min.js' %}"></script>
+    {#    create the file tree and populate the file activity#}
+    <script>
+        function createUploadFileButton(parentFileId) {
+            var uploadFileButton=$('<button>').attr('type','button').addClass(['btn','btn-sm','propagateParentFolderIdToUploadingModal']).attr('data-toggle','modal').attr('data-target','#uploadModal').html('<i class="fa-solid fa-cloud-arrow-up"></i>').attr('id',parentFileId)
+            return uploadFileButton
+        }
+        function createCreateFolderButton(parentFileId){
+            var createFolderButton=$('<button>').addClass(['btn','btn-sm','propagateParentFolderIdToCreatingFolderModal']).attr('data-toggle','modal').attr('data-target','#createFolderModal').attr('id',parentFileId).html('<i class="fa-solid fa-folder-plus"></i>')
+            return createFolderButton
+        }
+        function createFileTree(){
+            $.ajax({
+                url:'{% url 'web:file' request.tracer.project.id %}'+'?param=getProjectFiles',
+                method:'get',
+                success: function (response){
+                    //create the file tree
+                    response.forEach(function(file){
+                        if(file['file_type']==2){
+                            if(!file['parent_file_id']){
+                                $('#fileTree').append($('<ul>').attr('id',file['id']).html($('<a>').attr('href','#').html('Root ')).append(createUploadFileButton(file['id'])).append(createCreateFolderButton(file['id'])))
+                            }
+                            else{
+                                $('#'+file['parent_file_id']).append($('<ul>').attr('id',file['id']).html($('<a>').attr('href',file['file_url']).html(file['name'])).append(createUploadFileButton(file['id'])).append(createCreateFolderButton(file['id'])))
+                            }
+                        }
+                        else{
+                            $('#'+file['parent_file_id']).append($('<li>').html($('<a>').attr('href','#').addClass('downloadFile').attr('data-toggle','modal').attr('id',file['id']).attr('data-target','#downloadFileModal').html(file['name'])))
+                        }
+                    })
+                    //populate the activity
+                    //mindtrain: I can populate all the activity, and then set some of them to be displayed None, and then wait until the show more button clicking, and then I will set the attribute to display
+                    $('.propagateParentFolderIdToUploadingModal').on('click',function () {
+                        console.log('here')
+                        $('#uploadModal').find('input[name=uploadFileParentId]').val($(this).attr('id'))
+                    })
+                    $('.propagateParentFolderIdToCreatingFolderModal').on('click',function () {
+                    $('#createFolderModal').find('input[name=createFolderParentId]').val($(this).attr('id'))
+                    })
+                },
+                error:function (error){
+                }
+            })
+        }
+        function removeFileTree(){
+            $('#fileTree').empty()
+        }
+        $(createFileTree())
+        // propagate the parent folder id to the modal content
+
+
+    </script>
+    //load uuid
+    <script src="{% static 'web/js/uuid.min.js' %}"></script>
+    <script>
+        Dropzone.options.uploadFile= {
+            uploadMultiple: true,
+            paramName: 'file',
+            maxFiles: 3,
+            maxFilesize: 20,
+            autoProcessQueue: false,
+            parallelUploads: 3,
+            renameFile: true,
+            addRemoveLinks: true,
+            previewsContainer: '#previewContainer',
+            clickable: '#fileSelectorButton',
+            init: function () {
+                //delete the drop file message button
+                $('.dz-message button').remove()
+                var dropZone = this  //this represent the dropZone instance
+                this.element.querySelector('input[type=submit]').addEventListener('click', function (e) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    dropZone.processQueue()
+                })
+                this.on('addedfile', file => {
+                    file.removeUsedId = uuid.v4()
+                    var customationRequest = prompt(file.name + ' being added. Please input the customation request', 'No customation request.')
+                    var previewElement = $(file.previewElement)
+                    $(file.previewElement).remove()
+                    $('#previewContainer').append($('<div>').append($('<div>').addClass('col-md-4').attr('id', file.removeUsedId).html(previewElement)).append($('<div>').addClass('col-md-8').attr('style', 'height: 172px; padding-top:15px').html($('<div>').addClass('panel panel-primary').append($('<div>').addClass('panel-heading').html('customationRequest')).append($('<div>').addClass('panel-body').html(customationRequest)))))
+                })
+                this.on('removedfile', file => {
+                    $('#' + file.removeUsedId).next().remove()
+                    $('#' + file.removeUsedId).remove()
+                })
+                this.on('maxfilesexceeded', function (file) {
+                    alert('Max files exceeded')
+                    dropZone.removeFile(file)
+                    $('#' + file.removeUsedId).next().remove()
+                    $('#' + file.removeUsedId).remove()
+                })
+                this.on('sendingmultiple', function () {
+
+                })
+                this.on('successmultiple',function (files,response) {
+                   for (var i=0;i<response.length;i++){
+                       if(response[i]['flag']!=='uploading success'){
+                           $(files[i].previewElement).parent().parent().addClass('base')
+                           $(files[i].previewElement).parent().parent().append($('<div>').addClass('mask'))
+                           $(files[i].previewElement).parent().parent().find('.mask').append($('<div>').html($('<h2>').html(files[i]['content'])))
+                       }
+                       else{
+                           if (response[i]['flag']=='validation_failure'){
+                               var validationRes=$('<div>')
+                               response[i]['content'].forEach((value,key)=>{
+                                   validationRes.append(
+                                       $('<h2>').html(key+': '+value)
+                                   )
+                               })
+                                $(files[i].previewElement).parent().parent().addClass('base')
+                                $(files[i].previewElement).parent().parent().append($('<div>').addClass('mask'))
+                                $(files[i].previewElement).parent().parent().find('.mask').append($('<div>').html($('<h2>').html(validationRes)))
+                           }
+                           else{
+                               $(files[i].previewElement).parent().parent().addClass('base')
+                                $(files[i].previewElement).parent().parent().append($('<div>').addClass('mask'))
+                                $(files[i].previewElement).parent().parent().find('.mask').append($('<div>').html($('<h2>').html(files[i]['content'])))
+                           }
+                       }
+                   }
+
+                })
+
+            }
+        }
+    </script>
 {% endblock %}
