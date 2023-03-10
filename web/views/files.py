@@ -93,4 +93,37 @@ class FileUploadView(LoginRequiredMixin,View):
         return JsonResponse(response,safe=False)
 
 
+class FileCreateFolderView(LoginRequiredMixin,View):
+    def post(self,request,*args,**kwargs):
+        new_folder_form=NewFolder(request,request.POST)
+        if new_folder_form.is_valid():
+            parent_folder_id=new_folder_form.cleaned_data.get('parent_folder_id')
+            foldername=new_folder_form.cleaned_data.get('foldername')
+            file=File.objects.create(
+                project=request.tracer.project,
+                parent_file=File.objects.filter(id=parent_folder_id).first(),
+                name=foldername,
+                file_key=None,
+                file_size=0,
+                file_type=2,
+                file_ext=None,
+                creator=request.user
+            )
+            if file:
+                response={
+                    'flag':True,
+                    'content':''
+                }
+            else:
+                return HttpResponse('file stored in mysql failed',status=500)
+        else:
+            response={
+                'flag':False,
+                'content':{
+                    'parent_folder_id':new_folder_form.errors.get('parent_folder_id',None),
+                    'foldername':new_folder_form.errors.get('foldername',None)
+                }
+            }
+        return JsonResponse(response)
+
 

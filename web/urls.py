@@ -35,6 +35,7 @@ urlpatterns=[
         re_path(r'wiki/update/(?P<wiki_id>\d+)/$',WikiUpdateView.as_view(),name='wiki_update'),
         re_path(r'^file/view$',FileView.as_view(),name='file'),
         re_path(r'^file/upload$',FileUploadView.as_view(),name='file_upload'),
+        re_path(r'^file/create_folder',FileCreateFolderView.as_view(),name='create_folder'),
         re_path(r'^setting/$',SettingView.as_view(),name='setting')
     ],None)),
 ]

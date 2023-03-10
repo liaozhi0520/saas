@@ -106,20 +106,22 @@ File system for project
                     <h4 class="modal-title" id="myModalLabel">Create Folder</h4>
                 </div>
                 <div class="modal-body">
-                    <form class="form" autocomplete="on" action="#">
+                    <form class="form" autocomplete="on" id="createFolderForm">
                         {% csrf_token %}
-                        <input type="hidden" name="createFolderParentId" value="">
                         <div class="form-group">
-                                <label class="sr-only" for="">New Folder Name</label>
-                                <div class="input-group">
-                                    <div class="input-group-addon">Folder Name</div>
-                                    <input type="text" class="form-control" id="folderName" name="folderName" placeholder="Folder Name">
-                                </div>
-                                <div class="error-msg">
-                                </div>
+                            {{ create_folder_form.parent_folder_id }}
+                            <div class="error-msg"></div>
                         </div>
                         <div class="form-group">
-                            <button type="submit" class="btn btn-primary form-control">Create</button>
+                                <label class="sr-only" for="{{ create_folder_form.parent_folder_id.id_for_label }}">{{ create_folder_form.parent_folder_id.label }}</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">Folder Name</div>
+                                    {{ create_folder_form.foldername }}
+                                </div>
+                                <div class="error-msg"></div>
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" class="btn btn-primary form-control" value="Create">
                         </div>
                     </form>
                 </div>
@@ -165,11 +167,10 @@ File system for project
                     //populate the activity
                     //mindtrain: I can populate all the activity, and then set some of them to be displayed None, and then wait until the show more button clicking, and then I will set the attribute to display
                     $('.propagateParentFolderIdToUploadingModal').on('click',function () {
-                        console.log('here')
                         $('#uploadModal').find('input[name=uploadFileParentId]').val($(this).attr('id'))
                     })
                     $('.propagateParentFolderIdToCreatingFolderModal').on('click',function () {
-                    $('#createFolderModal').find('input[name=createFolderParentId]').val($(this).attr('id'))
+                    $('#createFolderModal').find('input[name=parent_folder_id]').val($(this).attr('id'))
                     })
                 },
                 error:function (error){
@@ -254,6 +255,36 @@ File system for project
             }
 
         }
+    </script>
+    // create folder ajax
+    <script>
+        $('#createFolderForm').on('submit',(event)=>{
+            event.preventDefault()
+            $('#createFolderForm').find('.error-msg').empty();
+            var formData=$('#createFolderForm').serialize()
+            $.ajax({
+                url:'{% url 'web:create_folder' project_id=request.tracer.project.id %}',
+                method:'post',
+                data:formData,
+                dataType:'json',
+                success:(response)=>{
+                    console.log(response)
+                    if(response['flag']){
+                        $.location.reload()
+                    }
+                    else{
+                        var parentFolderIdErrMsg=response['content']['parent_folder_id']
+                        var folderNameErrMsg=response['content']['foldername']
+                        $('#createFolderForm').find('input[name=parent_folder_id]').next().html(parentFolderIdErrMsg)
+                        $('#createFolderForm').find('input[name=foldername]').parent().next().html(folderNameErrMsg)
+                    }
+                },
+                error:(jqXHR,textStatus,errorThrown)=>{
+                    alert('Error: '+textStatus+' ('+jqXHR.status+')')
+                }
+            })
+
+        })
     </script>
 
 {% endblock %}
