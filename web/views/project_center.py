@@ -73,7 +73,7 @@ class CreateProjView(View):
                         parent_file=None,
                         name='root',
                         file_size=0,
-                        file_url=None,
+                        file_key=None,
                         file_type=2,
                         file_ext=None,
                         creator=request.user

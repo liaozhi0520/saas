@@ -9,6 +9,7 @@ from web.models import File,Project
 from urllib.parse import quote
 from utils.cos import *
 from uuid import uuid4
+from web.forms.files import *
 
 class LoginRequiredMixin(object):
     @method_decorator(login_required)
@@ -25,45 +26,54 @@ class FileView(LoginRequiredMixin,View):
             for file in response:
                 file['creating_time']=file.get('creating_time').isoformat()
             return JsonResponse(list(response),safe=False)
-        return render(request, r'web/file.html', {'request': request})
+        else:
+            create_folder_form=NewFolder(request)
+        return render(request, r'web/file.html', {
+            'request': request,
+            'create_folder_form':create_folder_form,
+        })
 
 class FileUploadView(LoginRequiredMixin,View):
     def post(self,request,*args,**kwargs):
-        folderId=request.POST.get('folderId')
+        folderId=int(request.POST.get('uploadFileParentId'))
         files=[request.FILES.get('file[%d]' %i)  for i in range(len(request.FILES))]
         response=[]
-        def validate_file(file,bucket_name,file_key):
-            validate_res={}
-            validate_res['file_name'] = []
-            accepted_file=[]
-            file_url='https://{bucket_name}.cos.ap-chengdu.mycloud.com/{file_key_urlformat}'.format(bucket_name=bucket_name,file_key_urlformat=quote(file_key))
-            if len(file_url)>256:
-                validate_res['file_name'].append('file key generated from this file name is too long. Please cut it to remain only the extension')
-            if len(file.name)>64:
-                validate_res['file_name'].append('file name is too long')
+        def validate_file(file,folderId):
+            validation_res={}
+            ##file.size
             if file.size>524288000: ##500MB
-                validate_res['file_size']=['file size excceeds the limit of 500MB',]
-            return validate_res
+                validation_res['file_size']='file size excceeds 500MB.'
+            if len(file.name)>64:
+                validation_res['file_name']='file name excceeds 64 chars.'
+            if (file.name,) in File.objects.filter(id=folderId).first().subfiles.values_list('name'):
+                validation_res['file_name'] = 'file name excceeds 64 chars and the file name dulicated in the folder'
+            if len(file.name)>64 and (file.name,) in File.objects.filter(id=folderId).first().subfiles.values_list('name'):
+                validation_res['file_name']= 'file name excceeds 64 chars and file name excceeds 64 chars and the file name dulicated in the folder'
+            return validation_res
         for file in files:
-            file_key='{uuid}-{file_name}'.format(uuid=uuid4().hex,file_name=file.name)
-            validate_res=validate_file(file,bucket_name=request.tracer.project.bucket_name,file_key=file_key)
-            if len(validate_res['file_name']):
-                file_name_for_file_key=os.path.splitext(file.name)[1]
-                file_key='{uuid}-{file_name}'.format(uuid=uuid4().hex,file_name=file_name_for_file_key)
-                del validate_res['file_name'][0]
-                if len(validate_res)>1 or len(validate_res['file_name']):
-                    response.append({'flag':'validation_failure','content':validate_res})
-                    continue
+            validation_res=validate_file(file,folderId)
+            if len(validation_res):
+                response.append({
+                    'flag':False,
+                    'code':'validation_failure',
+                    'content':validation_res
+                })
+                continue
             buffer = io.BytesIO()
             buffer.write(file.read())
             try:
+                file_key = '{uuid}-{file_name}'.format(uuid=uuid4().hex, file_name=file.name)
                 uploading_response = cos_client_chengdu.put_object(
                     bucket_name=request.tracer.project.bucket_name,
                     fp=buffer,
                     file_key=file_key
                 )
             except Exception as e:
-                response.append({'flag': 'uploading_failure', 'content': 'uploading to cloud failed'})
+                response.append({
+                    'flag':False,
+                    'code':'uploading_failure',
+                    'content':'uploading failure'
+                })
                 continue
             if uploading_response:
                 file = File.objects.create(
@@ -71,16 +81,15 @@ class FileUploadView(LoginRequiredMixin,View):
                     parent_file=File.objects.filter(id=folderId).first(),
                     name=file.name,
                     file_size=file.size,
-                    file_url='https://{bucket_name}.cos.ap-chengdu.mycloud.com/{file_key_urlformat}'.format(
-                        bucket_name=request.tracer.project.bucket_name, file_key_urlformat=quote(file_key)),
+                    file_key=file_key,
                     file_type=1,
                     file_ext=os.path.splitext(file.name)[1],
                     creator=request.user
                 )
                 if file:
-                    response.append({'flag': 'uploading success', 'content': 'uploading success'})
+                    response.append({'flag': True,'code':'uploading success', 'content': 'uploading success'})
                 else:
-                    response.append({'flag': 'storing failure', 'content': 'file stored in mysql failure'})
+                    response.append({'flag': False,'code':'storing failure','content': 'file stored in mysql failure'})
         return JsonResponse(response,safe=False)
 
 

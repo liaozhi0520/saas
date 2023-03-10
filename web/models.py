@@ -145,8 +145,8 @@ class File(models.Model):
     project = models.ForeignKey(to='Project', on_delete=models.CASCADE)
     parent_file=models.ForeignKey(to='File',related_name='subfiles',on_delete=models.CASCADE,null=True)
     name=models.CharField(max_length=64)
+    file_key=models.CharField(max_length=128,null=True)
     file_size=models.BigIntegerField(help_text='Bytes')
-    file_url=models.CharField(max_length=256,null=True)
     file_type=models.PositiveSmallIntegerField(choices=FILE_TYPE)
     file_ext=models.CharField(max_length=32,null=True)
     creator=models.ForeignKey(to='UserInfo',on_delete=models.CASCADE)
@@ -154,6 +154,6 @@ class File(models.Model):
     class meta:
         constraints=[
             models.UniqueConstraint(fields=('name','project','parent_file'),name='InSameProjectAndSameFolderNameUnique'),
-            models.CheckConstraint(check=(models.Q(file_type='folder') & models.Q(file_size=0)&models.Q(file_url=None)&models.Q(file_ext=None)),name='FolderSize0'),
+            models.CheckConstraint(check=(models.Q(file_type='folder') & models.Q(file_size=0)&models.Q(file_key=None)&models.Q(file_ext=None)),name='FolderSize0'),
             #this constraint will not change the model scheme, so no change detected
         ]

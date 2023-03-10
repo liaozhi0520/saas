@@ -29,7 +29,6 @@ File system for project
         }
         .base{
             position: relative;
-            height: 172px;
         }
         .mask{
             position:absolute;
@@ -41,7 +40,9 @@ File system for project
             border-radius: 10px;
             backdrop-filter: blur(2px);
             background-color: rgba(255,255,255,0.5);
+            text-align: center;
         }
+
     </style>
     <link href="{% static 'web/plugin/dropZone/dropzone.min.css' %}" rel="stylesheet">
 {% endblock %}
@@ -84,6 +85,7 @@ File system for project
                         {% csrf_token %}
                         <input type="hidden" name="uploadFileParentId" value="">
                         <input type="submit" style="width: 100%" class="btn btn-primary">
+                        <button id="revokeAllFilesButton" style="width: 100%"class="hidden btn btn-primary">Remove All Files And Resubmit</button>
                         <div style="width: 100%;text-align: center;margin-top: 10px" id="fileSelectorButton" class="btn btn-success">Click Me</div>
                         <div class="clearfix previewContainer dropzone-previews" id="previewContainer" >
                         </div>
@@ -108,7 +110,7 @@ File system for project
                         {% csrf_token %}
                         <input type="hidden" name="createFolderParentId" value="">
                         <div class="form-group">
-                                <label class="sr-only" for="exampleInputAmount">New Folder Name</label>
+                                <label class="sr-only" for="">New Folder Name</label>
                                 <div class="input-group">
                                     <div class="input-group-addon">Folder Name</div>
                                     <input type="text" class="form-control" id="folderName" name="folderName" placeholder="Folder Name">
@@ -130,7 +132,8 @@ File system for project
 {% endblock %}
 {% block js %}
     <script src="{% static 'web/plugin/dropZone/dropzone.min.js' %}"></script>
-    {#    create the file tree and populate the file activity#}
+    <script src="{% static 'web/js/uuid.min.js' %}"></script>
+    //create the file tree and populate the file activity
     <script>
         function createUploadFileButton(parentFileId) {
             var uploadFileButton=$('<button>').attr('type','button').addClass(['btn','btn-sm','propagateParentFolderIdToUploadingModal']).attr('data-toggle','modal').attr('data-target','#uploadModal').html('<i class="fa-solid fa-cloud-arrow-up"></i>').attr('id',parentFileId)
@@ -177,12 +180,8 @@ File system for project
             $('#fileTree').empty()
         }
         $(createFileTree())
-        // propagate the parent folder id to the modal content
-
-
     </script>
-    //load uuid
-    <script src="{% static 'web/js/uuid.min.js' %}"></script>
+    // initialize the dropzone plugin
     <script>
         Dropzone.options.uploadFile= {
             uploadMultiple: true,
@@ -196,9 +195,16 @@ File system for project
             previewsContainer: '#previewContainer',
             clickable: '#fileSelectorButton',
             init: function () {
+                var dropZone = this  //this represents the dropZone instance
                 //delete the drop file message button
                 $('.dz-message button').remove()
-                var dropZone = this  //this represent the dropZone instance
+                $('#upload-file').find('#revokeAllFilesButton').on('click',function (event) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    dropZone.removeAllFiles()
+                    $('#upload-file').find('input[type=submit]').removeClass('hidden')
+                    $(this).addClass('hidden')
+                })
                 this.element.querySelector('input[type=submit]').addEventListener('click', function (e) {
                     e.preventDefault()
                     e.stopPropagation()
@@ -209,51 +215,45 @@ File system for project
                     var customationRequest = prompt(file.name + ' being added. Please input the customation request', 'No customation request.')
                     var previewElement = $(file.previewElement)
                     $(file.previewElement).remove()
-                    $('#previewContainer').append($('<div>').append($('<div>').addClass('col-md-4').attr('id', file.removeUsedId).html(previewElement)).append($('<div>').addClass('col-md-8').attr('style', 'height: 172px; padding-top:15px').html($('<div>').addClass('panel panel-primary').append($('<div>').addClass('panel-heading').html('customationRequest')).append($('<div>').addClass('panel-body').html(customationRequest)))))
+                    previewElement.find('.dz-success-mark').remove()
+                    $('#previewContainer').append($('<div>').addClass(['base','clearfix']).attr('id', file.removeUsedId).append($('<div>').addClass('col-md-4').html(previewElement)).append($('<div>').addClass('col-md-8').attr('style', 'height: 172px; padding-top:15px').html($('<div>').addClass('panel panel-primary').append($('<div>').addClass('panel-heading').html('customationRequest')).append($('<div>').addClass('panel-body').html(customationRequest)))))
                 })
                 this.on('removedfile', file => {
-                    $('#' + file.removeUsedId).next().remove()
                     $('#' + file.removeUsedId).remove()
                 })
                 this.on('maxfilesexceeded', function (file) {
                     alert('Max files exceeded')
                     dropZone.removeFile(file)
-                    $('#' + file.removeUsedId).next().remove()
                     $('#' + file.removeUsedId).remove()
                 })
-                this.on('sendingmultiple', function () {
-
-                })
                 this.on('successmultiple',function (files,response) {
-                   for (var i=0;i<response.length;i++){
-                       if(response[i]['flag']!=='uploading success'){
-                           $(files[i].previewElement).parent().parent().addClass('base')
-                           $(files[i].previewElement).parent().parent().append($('<div>').addClass('mask'))
-                           $(files[i].previewElement).parent().parent().find('.mask').append($('<div>').html($('<h2>').html(files[i]['content'])))
+                    for (var i=0;i<response.length;i++){
+                       if(response[i]['flag']===true){
+                           $('#'+files[i].removeUsedId).append($('<div>').addClass('mask').append($('<i>').addClass(['fa-solid','fa-check-to-slot','fa-3x'])).append($('<h3>').html(response[i]['content'])))
                        }
                        else{
-                           if (response[i]['flag']=='validation_failure'){
-                               var validationRes=$('<div>')
-                               response[i]['content'].forEach((value,key)=>{
-                                   validationRes.append(
-                                       $('<h2>').html(key+': '+value)
-                                   )
+                           if (response[i]['code']=='validation_failure'){
+                               $('#'+files[i].removeUsedId).append($('<div>').addClass('mask').append($('<i>').addClass(['fa-solid','fa-triangle-exclamation','fa-3x'])))
+                               response[i]['content'].forEach(function (value,key) {
+                                   $('#'+files[i].removeUsedId).find('.mask').append($('<h3>').html(key+': '+value))
                                })
-                                $(files[i].previewElement).parent().parent().addClass('base')
-                                $(files[i].previewElement).parent().parent().append($('<div>').addClass('mask'))
-                                $(files[i].previewElement).parent().parent().find('.mask').append($('<div>').html($('<h2>').html(validationRes)))
                            }
+
                            else{
-                               $(files[i].previewElement).parent().parent().addClass('base')
-                                $(files[i].previewElement).parent().parent().append($('<div>').addClass('mask'))
-                                $(files[i].previewElement).parent().parent().find('.mask').append($('<div>').html($('<h2>').html(files[i]['content'])))
+                               $('#'+files[i].removeUsedId).append($('<div>').addClass('mask').append($('<i>').addClass(['fa-solid','fa-triangle-exclamation','fa-3x'])).append($('<h3>').html(response[i]['content'])))
                            }
                        }
                    }
-
+                    removeFileTree()
+                    createFileTree()
+                    $('#upload-file').find('input[type=submit]').addClass('hidden')
+                    $('#upload-file').find('#revokeAllFilesButton').removeClass('hidden')
                 })
-
+                this.on('errormultiple',function () {
+                })
             }
+
         }
     </script>
+
 {% endblock %}
