@@ -270,7 +270,7 @@ File system for project
                 success:(response)=>{
                     console.log(response)
                     if(response['flag']){
-                        $.location.reload()
+                        location.reload()
                     }
                     else{
                         var parentFolderIdErrMsg=response['content']['parent_folder_id']
