@@ -157,3 +157,51 @@ class File(models.Model):
             models.CheckConstraint(check=(models.Q(file_type='folder') & models.Q(file_size=0)&models.Q(file_key=None)&models.Q(file_ext=None)),name='FolderSize0'),
             #this constraint will not change the model scheme, so no change detected
         ]
+
+class Issue(models.Model):
+    ISSUE_TYPE = (
+        (1, 'task'),
+        (2, 'bug'),
+        (3, 'feature_discussion')
+    )
+    ISSUE_STATUS=(
+        (1,'NEWLY_CREATED'),
+        (2,'PROCESSING'),
+        (3,'FINISHED'),
+        (4,'TIMEOUT')
+    )
+    ISSUE_PRIVILEDGE=(
+        (1,'low'),
+        (2,'medium'),
+        (3,'high'),
+        (4,'premium')
+    )
+    title=models.CharField(max_length=64,)
+    description=models.CharField(max_length=192)
+    type=models.CharField(choices=ISSUE_TYPE,max_length=2)
+    creator=models.ForeignKey(to='Userinfo',on_delete=models.CASCADE)
+    status=models.CharField(choices=ISSUE_STATUS,max_length=2)
+    priviledge=models.CharField(choices=ISSUE_PRIVILEDGE,max_length=2)
+    creating_time=models.DateTimeField(auto_now_add=True)
+    deadline_time=models.DateTimeField(null=True)  # that depends on the type of the issue
+    last_updated_time=models.DateTimeField(auto_now=True)
+    project=models.ForeignKey(to='Project',on_delete=models.CASCADE)
+
+class IssueUser(models.Model):
+    ISSUE_USER_RELATION=(
+        (1,'creator'),
+        (2,'manager'),
+        (3,'invited')
+    )
+    issue=models.ForeignKey(to='Issue',on_delete=models.CASCADE)
+    user=models.ForeignKey(to='UserInfo',on_delete=models.CASCADE,related_name='all_my_issues')
+    relation=models.CharField(choices=ISSUE_USER_RELATION,max_length=2)
+    operator=models.ForeignKey(to='UserInfo',on_delete=models.CASCADE,related_name='all_my_operating_issue')
+    operating_time=models.DateTimeField(auto_now_add=True)
+
+class IssueReply(models.Model):
+    issue=models.ForeignKey(to='Issue',on_delete=models.CASCADE)
+    parent_reply=models.ForeignKey(to='IssueReply',on_delete=models.CASCADE,related_name='subreplies')
+    content=models.CharField(max_length=320)
+    creator=models.ForeignKey(to='UserInfo',on_delete=models.CASCADE)
+    reply_time=models.DateTimeField(auto_now_add=True)

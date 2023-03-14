@@ -148,9 +148,7 @@ class DashboardView(LoginRequiredMixin,View):
         return render(request,r'web/dashboard.html',{'request':request})
 
 
-class IssuesView(LoginRequiredMixin,View):
-    def get(self,request,*args,**kwargs):
-        return render(request,r'web/issues.html',{'request':request})
+
 
 class StatisticsView(LoginRequiredMixin,View):
     def get(self, request, *args, **kwargs):

@@ -1,4 +1,323 @@
 {% extends 'web/layout/manage.html' %}
+{% load static %}
+{% block title %}
+    issues view
+{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'web/css/bootstrap-select.min.css' %}">
+    <style>
+        .createIssueBtn{
+            width: 100%;
+            background-color: #849376;   //sage color
+            text-align:center
+        }
+        .issueFilter{
+            background-color: #849376;
+        }
+        .issueList{
+            min-height: 700px;
+            background-color: #849376;
+        }
+        .panel .dividerLine{
+            border:1px solid black;
+            margin:0;
+        }
+        .creatingIssueModal .modal-header{
+            background-color: #849376;
+            border-bottom: 2px solid #849376;
+        }
+        .creatingIssueModal .modal-footer{
+            background-color: #849376;
+            border-top: 1px solid #849376;
+        }
+        .creatingIssueModal .modal-body{
+            background-color: #cee2d9;
+        }
+        .creatingIssueModal button{
+            background-color: #cee2d9;
+        }
+        .creatingIssueModal .close{
+            background-color: #849376;
+        }
+        .creatingIssueModal button[data-toggle=dropdown]{
+            background-color: #fff;
+        }
+    </style>
+{% endblock %}
 {% block content %}
-<h1>Issues</h1>
+    <div class="container-fluid">
+        <div class="col-md-3">
+            <div class="col-md-12">
+                <btn class="btn createIssueBtn" data-toggle="modal" data-target="#creatingIssueModal">
+                <i class="fa-solid fa-plus-circle fa-5x "></i>
+                <h3>Create a New Issue</h3>
+                </btn>
+            </div>
+            <div class="col-md-12" style="margin-top: 20px">
+                 <div class="panel issueFilter">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <a data-toggle="collapse" href="#issueFilter">
+                                <i class="fa-solid fa-filter"></i><b>Issue Filter</b>
+                            </a>
+                        </div>
+                    </div>
+                    <hr class="dividerLine">
+                    <div class="panel-collapse collapse out" id="issueFilter">
+                        <div class="panel-body">
+                            <form autocomplete="on" id="issueFilterForm">
+                                <div class="row no-padding">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <div class="input-group">
+                                            <span class="input-group-addon">Creator</span>
+                                            <select id="id_creator" class="form-control selectpicker" name="creator" data-live-search="true">
+                                            <option value="userid1">
+                                                user1
+                                            </option>
+                                            <option value="userid2">
+                                                user2
+                                            </option>
+                                            <option value="userid3">
+                                                user3
+                                            </option>
+                                        </select>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <div class="input-group">
+                                            <span class="input-group-addon">
+                                                Manager
+                                            </span>
+                                            <select id="id_manager" class="form-control selectpicker" name="manager" data-live-search="true">
+                                            <option value="userid1">
+                                                user1
+                                            </option>
+                                            <option value="userid2">
+                                                user2
+                                            </option>
+                                            <option value="userid3">
+                                                user3
+                                            </option>
+                                        </select>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <div class="input-group">
+                                            <span class="input-group-addon">
+                                                Members
+                                            </span>
+                                            <select id="id_members" class="form-control selectpicker" name="members" data-live-search="true" multiple>
+                                            <option value="userid1">
+                                                user1
+                                            </option>
+                                            <option value="userid2">
+                                                user2
+                                            </option>
+                                            <option value="userid3">
+                                                user3
+                                            </option>
+                                        </select>
+                                        </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="id_sort">Sort</label>
+                                        <select name="sort" class="selectpicker form-control" multiple>
+                                            <optgroup label="time">
+                                                <option value="creating_time">creating time</option>
+                                                <option value="updating_time">updating time</option>
+                                            </optgroup>
+                                            <optgroup label="order">
+                                                <option value="descending">Descending</option>
+                                                <option value="ascending">Ascending</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label for="id_type">type</label>
+                                            <select class="form-control selectpicker" name="type">
+                                                <option value="task">Assignment</option>
+                                                <option value="bug">Bug</option>
+                                                <option value="feature_discussing">Feature Discussing</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <select class="form-control selectpicker" name="priviledge">
+                                            <option value="1">Low</option>
+                                            <option value="2">Medium</option>
+                                            <option value="3">High</option>
+                                            <option value="4">Premium</option>
+                                        </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <input class="btn btn-default form-control"type="submit" value="Start" >
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </div>
+        <div class="col-md-9 ">
+            <div class="panel issueList">
+                <div class="panel-heading">Issue List</div>
+                <hr class="dividerLine">
+                <div class="panel-body">
+                    Issue Filter
+                </div>
+            </div>
+        </div>
+    </div>
+
+    // creating_issues modal
+    <div class="modal fade creatingIssueModal" tabindex="-1" role="dialog" id="creatingIssueModal" >
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Creating an Issue</h4>
+              </div>
+              <div class="modal-body">
+                <form class='form' action="" method="post" autocomplete="on" id="creatingIssueForm">
+                    <div class="form-group">
+                        <div class="input-group">
+                          <div class="input-group-addon"><b>Title</b></div>
+                          <input type="text" class="form-control" name="title" placeholder="title">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description_id">Description</label>
+                        <textarea id='description_id' class="form-control" rows="3" placeholder="Please describe the issue you want to create"></textarea>
+                    </div>
+                    <div class="row no-padding">
+                        <div class="col-sm-6">
+                        <div class="form-group">
+                        <label for="id_type">Type</label>
+                        <select class="selectpicker form-control" name="type" id="id_type">
+                          <option value="1">assignment</option>
+                          <option value="2">bug</option>
+                          <option value="3">feature discussing</option>
+                        </select>
+                    </div>
+                    </div>
+                        <div class="col-sm-6">
+                        <div class="form-group">
+                        <label for="id_priviledge">Priviledge</label>
+                        <select class="selectpicker form-control" name="priviledge" id="id_priviledge">
+                          <option value="1">low</option>
+                          <option value="2">medium</option>
+                          <option value="3">high</option>
+                          <option value="4">premium</option>
+                        </select>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="row no-padding">
+                        <div class="col-sm-6">
+                        <div class="form-group">
+                        <label for="id_issue_manager">Issue Manager</label>
+                        <select class="selectpicker form-control" name="type" id="id_type" data-live-search="true">
+                          <option value="user_id">id1</option>
+                          <option value="user_id">id2</option>
+                          <option value="user_id">id3</option>
+                        </select>
+                    </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                        <label for="id_type_issue_related_members">Issue related members</label>
+                        <select class="selectpicker form-control" name="issue_related_members" id="id_issue_related_members" multiple data-live-search="true">
+                          <option value="userid1">user1</option>
+                          <option value="userid2">user2</option>
+                          <option value="userid3">user3</option>
+                        </select>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_deadline">Deadline</label>
+                        <input type="datetime-local" class="form-control" name="deadline" id="id_deadline" placeholder="Please tap the calender icon on the right to select datetime">
+                    </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-default" id="creatingIssueSubmitBtn">Creating</button>
+              </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+{% endblock %}
+{% block js %}
+    <script src="{% static 'web/js/bootstrap-select.min.js' %}"></script>
+    <script>
+        $(()=>{
+            $('.createIssueBtn').on('mouseover',function (){
+                $(this).find('i').addClass('fa-bounce')
+            })
+            $('.createIssueBtn').on('mouseout',function (){
+                $(this).find('i').removeClass('fa-bounce')
+            })
+            $('#creatingIssueSubmitBtn').on('click',function () {
+                $('#creatingIssueForm').trigger(
+                    'submit',function (event) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        var formData=$(this).serialize()
+                        $.ajax({
+                            url:'',
+                            method:'post',
+                            data:formData,
+                            dataType:'json',
+                            success:function () {
+                                
+                            },
+                            error:function (jqXHR,textStatus,errorThrown) {
+                                alert(
+                                    'Error: '+jqXHR.responseText+'('+textStatus+')'
+                                )
+                            }
+                        })
+                        
+                    }
+                )
+            })
+        })
+    </script>
+    //issue filter form submission
+    <script>
+        $('#issueFilterForm').on('submit',function (e){
+            e.preventDefault()
+            e.stopPropagation()
+            console.log('here')
+            $('a[data-toggle=collapse]').trigger('click')
+            var formData=$(this).serialize()
+            $.ajax({
+                url:'',
+                method:'post',
+                data:formData,
+                dataType:'json',
+                success:function (response) {
+                    // add a new issue preview or justt bluntly reload the issue preview list
+                },
+                error:function (jqXHR,textStatus,errorThrown){
+
+                }
+            })
+
+        })
+    </script>
 {% endblock %}
