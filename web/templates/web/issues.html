@@ -42,6 +42,66 @@
         .creatingIssueModal button[data-toggle=dropdown]{
             background-color: #fff;
         }
+        .sageColor{
+            background-color: #849376;
+        }
+        .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
+            border-top: solid 2px black;
+        }
+        .issueListLoadingAnimation{
+            text-align: center;
+        }
+        .pagination>li>a, .pagination>li>span{
+            color:black;
+            background-color: #849376;
+            border: 1px solid black;
+        }
+        .pagination>li>a:focus, .pagination>li>a:hover, .pagination>li>span:focus, .pagination>li>span:hover{
+            color:black;
+            background-color: #cee2d9;
+            border-color: black ;
+        }
+        .dropdown-menu>.active>a, .dropdown-menu>.active>a:focus, .dropdown-menu>.active>a:hover{
+            background-color: #849376;
+        }
+        .error-msg{
+            font-size:12px;
+            color: red;
+        }
+        .error-msg i{
+            animation: shake 0.5s ease-in-out infinite;
+        }
+        @keyframes shake{
+            0% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(10deg);
+            }
+            50% {
+                transform: rotate(-10deg);
+            }
+            75% {
+                transform: rotate(10deg);
+            }
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+        .creatingIssueModalFace{
+            position: relative;
+        }
+        .creatingIssueModalMask{
+            position:absolute;
+            top: 0;
+            left: 0;
+            z-index:10;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(2px);
+            text-align: center;
+            background-color: rgba(255,255,255,0.5);
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -66,22 +126,14 @@
                     <div class="panel-collapse collapse out" id="issueFilter">
                         <div class="panel-body">
                             <form autocomplete="on" id="issueFilterForm">
+                                {% csrf_token %}
                                 <div class="row no-padding">
                                     <div class="col-sm-12">
                                         <div class="form-group">
                                             <div class="input-group">
-                                            <span class="input-group-addon">Creator</span>
-                                            <select id="id_creator" class="form-control selectpicker" name="creator" data-live-search="true">
-                                            <option value="userid1">
-                                                user1
-                                            </option>
-                                            <option value="userid2">
-                                                user2
-                                            </option>
-                                            <option value="userid3">
-                                                user3
-                                            </option>
-                                        </select>
+                                            <span class="input-group-addon">{{ issue_filter_form.issue_creators.label}}</span>
+                                            {{ issue_filter_form.issue_creators }}
+                                             <div class="error-msg {{ issue_filter_form.issue_creators.name }}"></div>
                                         </div>
                                         </div>
                                     </div>
@@ -89,19 +141,10 @@
                                         <div class="form-group">
                                             <div class="input-group">
                                             <span class="input-group-addon">
-                                                Manager
+                                                {{ issue_filter_form.issue_managers.label }}
                                             </span>
-                                            <select id="id_manager" class="form-control selectpicker" name="manager" data-live-search="true">
-                                            <option value="userid1">
-                                                user1
-                                            </option>
-                                            <option value="userid2">
-                                                user2
-                                            </option>
-                                            <option value="userid3">
-                                                user3
-                                            </option>
-                                        </select>
+                                            {{ issue_filter_form.issue_managers }}
+                                            <div class="error-msg {{ issue_filter_form.issue_managers.name }}"></div>
                                         </div>
                                         </div>
                                     </div>
@@ -109,54 +152,33 @@
                                         <div class="form-group">
                                             <div class="input-group">
                                             <span class="input-group-addon">
-                                                Members
+                                                {{ issue_filter_form.issue_members.label }}
                                             </span>
-                                            <select id="id_members" class="form-control selectpicker" name="members" data-live-search="true" multiple>
-                                            <option value="userid1">
-                                                user1
-                                            </option>
-                                            <option value="userid2">
-                                                user2
-                                            </option>
-                                            <option value="userid3">
-                                                user3
-                                            </option>
-                                        </select>
+                                                {{ issue_filter_form.issue_members }}
+                                                <div class="error-msg {{ issue_filter_form.issue_members.name }}"></div>
                                         </div>
                                         </div>
 
                                     </div>
                                     <div class="col-sm-6">
-                                        <label for="id_sort">Sort</label>
-                                        <select name="sort" class="selectpicker form-control" multiple>
-                                            <optgroup label="time">
-                                                <option value="creating_time">creating time</option>
-                                                <option value="updating_time">updating time</option>
-                                            </optgroup>
-                                            <optgroup label="order">
-                                                <option value="descending">Descending</option>
-                                                <option value="ascending">Ascending</option>
-                                            </optgroup>
-                                        </select>
+                                        <div class="form-group">
+                                            <label for="{{ issue_filter_form.sort.id_for_label }}">{{ issue_filter_form.sort.label }}</label>
+                                            {{ issue_filter_form.sort  }}
+                                            <div class="error-msg {{ issue_filter_form.sort.name }}"></div>
+                                        </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <div class="form-group">
-                                            <label for="id_type">type</label>
-                                            <select class="form-control selectpicker" name="type">
-                                                <option value="task">Assignment</option>
-                                                <option value="bug">Bug</option>
-                                                <option value="feature_discussing">Feature Discussing</option>
-                                            </select>
+                                            <label for="{{ issue_filter_form.type.id_for_label }}">{{ issue_filter_form.type.label }}</label>
+                                            {{ issue_filter_form.type }}
+                                            <div class="error-msg {{ issue_filter_form.type.name }}"></div>
                                         </div>
                                     </div>
                                     <div class="col-sm-12">
                                         <div class="form-group">
-                                            <select class="form-control selectpicker" name="priviledge">
-                                            <option value="1">Low</option>
-                                            <option value="2">Medium</option>
-                                            <option value="3">High</option>
-                                            <option value="4">Premium</option>
-                                        </select>
+                                            <label for="{{ issue_filter_form.priviledge.id_for_label }}">{{ issue_filter_form.priviledge.label }}</label>
+                                            {{ issue_filter_form.priviledge }}
+                                            <div class="error-msg {{ issue_filter_form.priviledge.name }}"></div>
                                         </div>
                                     </div>
                                     <div class="col-sm-12">
@@ -176,12 +198,66 @@
                 <div class="panel-heading">Issue List</div>
                 <hr class="dividerLine">
                 <div class="panel-body">
-                    Issue Filter
+                    <div class="table-responsive">
+                        <table class="table sageColor " >
+                        <tbody id="issueList">
+                            <tr>
+                                <th>
+                                    <div>#</div>
+                                    <div>last updated time</div>
+                                </th>
+                                <th>
+                                    <div>Title</div>
+                                    <div>Type</div>
+                                </th>
+                                <th>
+                                    <div>Creator</div>
+                                    <div>Creating Time</div>
+                                </th>
+                                <th>Members</th>
+                                <th>
+                                    <div>Priviledge</div>
+                                    <div>Status</div>
+                                </th>
+                                <th>
+                                    Details
+                                </th>
+                            </tr>
+                            <tr class="issueListItemTemp hidden">
+                                <td>
+                                    <div class="issue_id">#1</div>
+                                    <div class="issue_last_updated_time">2022-3-15 12:12:12</div>
+                                </td>
+                                <td>
+                                    <div class="issue_title">MyFirstIssue</div>
+                                    <div class="issue_type">Feature discussing</div>
+                                </td>
+                                <td>
+                                    <div class="issue_creator__username">user1</div>
+                                    <div class="issue_creating_time">2022-3-15 12:12:12</div>
+                                </td>
+                                <td class="issue_manager__username">user2,user3</td>
+                                <td>
+                                    <div class="issue_priviledge">Premium</div>
+                                    <div class="issue_status">Newly Created</div>
+                                </td>
+                                <td>
+                                    <i class="fa-solid fa-arrow-right-to-bracket fa-3x issueDetailsPort"></i>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <div class="issueListLoadingAnimation hidden">
+                        <i class="fa-solid fa-spinner fa-5x fa-spin"></i>
+                    </div>
+                    <ul class="pagination pagination-lg issueListPagination">
+
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-
     // creating_issues modal
     <div class="modal fade creatingIssueModal" tabindex="-1" role="dialog" id="creatingIssueModal" >
         <div class="modal-dialog modal-lg" role="document">
@@ -190,68 +266,61 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title">Creating an Issue</h4>
               </div>
-              <div class="modal-body">
-                <form class='form' action="" method="post" autocomplete="on" id="creatingIssueForm">
+              <div class="modal-body creatingIssueModalFace">
+                <form class='form ' action="" method="post" autocomplete="on" id="creatingIssueForm">
+                    {% csrf_token %}
                     <div class="form-group">
                         <div class="input-group">
-                          <div class="input-group-addon"><b>Title</b></div>
-                          <input type="text" class="form-control" name="title" placeholder="title">
+                          <div class="input-group-addon"><b>{{ new_issue_form.title.label }}</b></div>
+                            {{new_issue_form.title}}
                         </div>
+                        <div class="error-msg {{ new_issue_form.title.name }}"></div>
                     </div>
                     <div class="form-group">
-                        <label for="description_id">Description</label>
-                        <textarea id='description_id' class="form-control" rows="3" placeholder="Please describe the issue you want to create"></textarea>
+                        <label for="{{ new_issue_form.description.id_for_label }}">{{ new_issue_form.description.label }}</label>
+                        {{ new_issue_form.description }}
+                        <div class="error-msg {{ new_issue_form.description.name }}"></div>
                     </div>
                     <div class="row no-padding">
                         <div class="col-sm-6">
                         <div class="form-group">
-                        <label for="id_type">Type</label>
-                        <select class="selectpicker form-control" name="type" id="id_type">
-                          <option value="1">assignment</option>
-                          <option value="2">bug</option>
-                          <option value="3">feature discussing</option>
-                        </select>
+                        <label for="{{ new_issue_form.type.id_for_label }}">{{ new_issue_form.type.label }}</label>
+                        {{ new_issue_form.type  }}
+                            <div class="error-msg {{ new_issue_form.type.name }}"></div>
                     </div>
                     </div>
                         <div class="col-sm-6">
                         <div class="form-group">
-                        <label for="id_priviledge">Priviledge</label>
-                        <select class="selectpicker form-control" name="priviledge" id="id_priviledge">
-                          <option value="1">low</option>
-                          <option value="2">medium</option>
-                          <option value="3">high</option>
-                          <option value="4">premium</option>
-                        </select>
+                        <label for="{{ new_issue_form.priviledge.id_for_label }}">{{ new_issue_form.priviledge.label }}</label>
+                        {{ new_issue_form.priviledge }}
+                            <div class="error-msg {{ new_issue_form.priviledge.name }}"></div>
                     </div>
                     </div>
                     </div>
                     <div class="row no-padding">
                         <div class="col-sm-6">
                         <div class="form-group">
-                        <label for="id_issue_manager">Issue Manager</label>
-                        <select class="selectpicker form-control" name="type" id="id_type" data-live-search="true">
-                          <option value="user_id">id1</option>
-                          <option value="user_id">id2</option>
-                          <option value="user_id">id3</option>
-                        </select>
+                        <label for="{{ new_issue_form.issue_manager.id_for_label }}">{{ new_issue_form.issue_manager.label }}</label>
+                        {{ new_issue_form.issue_manager }}
+                            <div class="error-msg {{ new_issue_form.issue_manager.name }}"></div>
                     </div>
                     </div>
-                    <div class="col-sm-6">
+                        <div class="col-sm-6">
                         <div class="form-group">
-                        <label for="id_type_issue_related_members">Issue related members</label>
-                        <select class="selectpicker form-control" name="issue_related_members" id="id_issue_related_members" multiple data-live-search="true">
-                          <option value="userid1">user1</option>
-                          <option value="userid2">user2</option>
-                          <option value="userid3">user3</option>
-                        </select>
+                        <label for="{{ new_issue_form.issue_members.id_for_label }}">{{ new_issue_form.issue_members.label }}</label>
+                        {{ new_issue_form.issue_members }}<div class="error-msg {{ issue_filter_form.issue_members.name }}"></div>
                     </div>
                     </div>
                     </div>
                     <div class="form-group">
-                        <label for="id_deadline">Deadline</label>
-                        <input type="datetime-local" class="form-control" name="deadline" id="id_deadline" placeholder="Please tap the calender icon on the right to select datetime">
+                        <label for="{{ new_issue_form.deadline_time.id_for_label }}">{{ new_issue_form.deadline_time.label }}</label>
+                        {{ new_issue_form.deadline_time }}
+                        <div class="error-msg {{ new_issue_form.deadline_time.name }}"></div>
                     </div>
                 </form>
+                  <div class="creatingIssueModalMask hidden">
+                      <i class="fa-solid fa-spinner fa-spin fa-4x"></i>
+                  </div>
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -271,19 +340,31 @@
             $('.createIssueBtn').on('mouseout',function (){
                 $(this).find('i').removeClass('fa-bounce')
             })
-            $('#creatingIssueSubmitBtn').on('click',function () {
-                $('#creatingIssueForm').trigger(
-                    'submit',function (event) {
-                        event.preventDefault()
-                        event.stopPropagation()
+            $('#creatingIssueForm').on('submit',function (event) {
+                event.preventDefault()
+                event.stopPropagation()
+                $('.creatingIssueModalMask').removeClass('hidden')
+                        var formElement=$(this)
                         var formData=$(this).serialize()
+                        console.log(formData)
                         $.ajax({
-                            url:'',
+                            url:'{% url 'web:issues' project_id=request.tracer.project.id %}',
                             method:'post',
                             data:formData,
                             dataType:'json',
-                            success:function () {
-                                
+                            success:function (response) {
+                                $('.creatingIssueModalMask').addClass('hidden')
+                                if(response.flag){
+                                    location.reload()
+                                }
+                                else{
+                                    var validation_res=response.content.validation_res
+                                    $.each(validation_res, function (key,value) {
+                                        formElement.find('.error-msg.'+key).html(
+                                            value[0]
+                                        )
+                                    })
+                                }
                             },
                             error:function (jqXHR,textStatus,errorThrown) {
                                 alert(
@@ -291,33 +372,56 @@
                                 )
                             }
                         })
-                        
-                    }
-                )
             })
-        })
-    </script>
-    //issue filter form submission
-    <script>
-        $('#issueFilterForm').on('submit',function (e){
-            e.preventDefault()
-            e.stopPropagation()
-            console.log('here')
-            $('a[data-toggle=collapse]').trigger('click')
-            var formData=$(this).serialize()
-            $.ajax({
-                url:'',
+            $('#creatingIssueSubmitBtn').on('click',function () {
+                $('#creatingIssueForm').trigger('submit')
+            })
+            // issue list generator
+            function createIssueItem(issueData){
+                var clonedIssueItemTemp=$('.issueListItemTemp').clone()
+                $.each(issueData,function (key,value){
+                    clonedIssueItemTemp.find('.issue_'+key).html(value)
+                })
+                clonedIssueItemTemp.removeClass(['hidden','issueListItemTemp'])
+                return clonedIssueItemTemp
+            }
+            function getIssuePage(issueFilterFormData,pageNumber) {
+                $('.issueListLoadingAnimation').removeClass('hidden')
+                $.ajax({
+                url:'{% url 'web:issue_list' project_id=request.tracer.project.id %}'+'?page='+pageNumber,
                 method:'post',
-                data:formData,
+                data:issueFilterFormData,
                 dataType:'json',
-                success:function (response) {
-                    // add a new issue preview or justt bluntly reload the issue preview list
-                },
-                error:function (jqXHR,textStatus,errorThrown){
+                success:function (response){
+                    if(response.flag){
+                        $('.issueListLoadingAnimation').addClass('hidden')
+                        issueListItems=response.content.object_list
+                        $('.issueListItemTemp').nextAll().remove()
+                        $.each(issueListItems,function (index,singleIssue){
+                        var issueItem=createIssueItem(singleIssue)
+                        $('#issueList').append(issueItem)
+                    })
+                    }
+                    else{
 
+                    }
+                },
+                error:function (jqXHR,textStatus,errorThrown) {
+                        alert('Error: '+errorThrown+'('+textStatus+')')
                 }
             })
+            }
+            $('#issueFilterForm').on('submit',function (e){
+                e.preventDefault()
+                e.stopPropagation()
+                $('a[data-toggle=collapse]').trigger('click')
+                var issueFilterFormData=$(this).serialize()
+                getIssuePage(issueFilterFormData,'1')
+            })
+            getIssuePage($('#issueFilterForm').serialize(),'1')
 
         })
+    </script>
+    <script>
     </script>
 {% endblock %}

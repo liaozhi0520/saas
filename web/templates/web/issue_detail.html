@@ -1,0 +1,52 @@
+{% extends 'web/layout/manage.html' %}
+{% block title %}
+    issue detail
+{% endblock %}
+{% block css %}
+    <style>
+        .issueDetail{
+            background-color: #849376;
+            min-height: 300px;
+        }
+
+        .issueReplies{
+            background-color: #849376;
+            min-height: 500px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-default issueDetail">
+                    <div class="panel-heading">
+                      <h4 class="panel-title">
+                        <a data-toggle="collapse"  href="#issueDetail" >
+                          Issue Detail
+                        </a>
+                      </h4>
+                    </div>
+                    <div id="issueDetail" class="panel-collapse collapse in" >
+                      <div class="panel-body">
+                            Issue Details
+                      </div>
+                    </div>
+                  </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="panel panel-default issueReplies">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">All Repllies</h3>
+                  </div>
+                  <div class="panel-body">
+                        All Replies
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+
+{% endblock %}

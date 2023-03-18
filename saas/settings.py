@@ -90,8 +90,8 @@ DATABASES = {
         'PORT':3306,
         'USER':'root',
         'PASSWORD':mysql_pwd,
-        'ATOMIC_REQUEST':False,
-        'AUTOCOMMIT':True,
+        'ATOMIC_REQUEST':False, ## this setting will enable transaction on every single HTTP requests
+        'AUTOCOMMIT':True,      ## this setting will enable autocommit of each query when the qyeries are executed
         'OPTIONS':{
             'isolation_level':'read committed'
         }
