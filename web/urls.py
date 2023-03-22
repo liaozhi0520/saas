@@ -27,9 +27,9 @@ urlpatterns=[
     ##manage
     re_path(r'^manage/(?P<project_id>\d+)/',include([
         re_path(r'^dashboard/$',DashboardView.as_view(),name='dashboard'),
-        re_path(r'^issues/$',IssuesView.as_view(),name='issues'),
-        re_path(r'^issue/replies/(?P<issue_id>\d+)',IssueRepliesView.as_view(),name='issue_replies'),
+        re_path(r'^issue/$',IssuesView.as_view(),name='issue'),
         re_path(r'^issue/list$',IssueListView.as_view(),name='issue_list'),
+        re_path(r'^issue/details/(?P<issue_id>\d+)$', IssueDetailsView.as_view(), name='issue_details'),
         re_path(r'^statistics/$',StatisticsView.as_view(),name='statistics'),
         re_path(r'^wiki/$',WikiView.as_view(),name='wiki'),
         re_path(r'^wiki/tree/$',WikiTreeView.as_view(),name='wiki_tree'),

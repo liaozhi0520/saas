@@ -156,7 +156,8 @@ class IssueListView(LoginRequiredMixin,View):
             return JsonResponse(response,safe=False)
 
 
-class IssueRepliesView(LoginRequiredMixin,View):
+class IssueDetailsView(LoginRequiredMixin,View):
     def get(self,request,*args,**kwargs):
+        issue_id=kwargs.get('issue_id')
         context={}
         return render(request,r'web/issue_detail.html',context=context)

@@ -2,12 +2,15 @@ import datetime
 from django.utils.deprecation import MiddlewareMixin
 from django.shortcuts import redirect
 from django.urls import reverse
+from web.models import *
 
 class Tracer(object):
     def __init__(self):
         self.user_status=None  #it stores the pricepolicy instance
         self.project=None       #it stores the project instance if the user request a project legally
         self.project_owner=None #it indicates the whether the user is the owner of this project
+        self.issue=None
+
 
 class UserStatusAuth(MiddlewareMixin):
     def process_request(self,request):
@@ -53,6 +56,18 @@ class ProjectAuth(MiddlewareMixin):
                 request.tracer.project_owner=False
             return
 
+
+class IssueAuth(MiddlewareMixin):
+    def process_view(self,request,view_func,view_args,view_kwargs):
+        if not '/issue/details/' in request.path_info:
+            return
+        issue_id=view_kwargs.get('issue_id')
+        issue=Issue.objects.filter(project=request.tracer.project,id=issue_id)
+        if issue:
+            request.tracer.issue=issue
+            return
+        else:
+            return redirect(reverse('web:project_list'))
 
 
 

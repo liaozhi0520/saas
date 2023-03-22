@@ -16,7 +16,7 @@ def manage_menu_tag(request):
     path_info=request.path_info
     data_list=[
         {'icon':'fa-solid fa-eye','title':'Dashboard','url':reverse('web:dashboard',kwargs={'project_id':request.tracer.project.id})},
-        {'icon':'fa-solid fa-circle-question','title': 'Issues', 'url': reverse('web:issues', kwargs={'project_id': request.tracer.project.id})},
+        {'icon':'fa-solid fa-circle-question','title': 'Issues', 'url': reverse('web:issue', kwargs={'project_id': request.tracer.project.id})},
         {'icon':'fa-solid fa-chart-line','title': 'Statistics', 'url': reverse('web:statistics', kwargs={'project_id': request.tracer.project.id})},
         {'icon':'fa-brands fa-wikipedia-w','title': 'Wiki', 'url': reverse('web:wiki', kwargs={'project_id': request.tracer.project.id})},
         {'icon':'fa-solid fa-file','title': 'File', 'url': reverse('web:file', kwargs={'project_id': request.tracer.project.id})},

@@ -1,4 +1,31 @@
-{% extends 'web/test.html' %}
+{% extends 'web/layout/manage.html' %}
+{% load static %}
 {% block content %}
-    <h4>cntent in test_extend</h4>
+    <div class="container">
+        <canvas id="myChart"></canvas>
+    </div>
+{% endblock %}
+{% block js %}
+
+
+<script src="{% static 'web/js/chart.js' %}">
+</script>
+    <script>
+        const img=new Image()
+        img.src='{% static 'web/img/images.jfif' %}'
+        img.onload=function () {
+            const ctx=$('#myChart')[0].getContext('2d')
+            const fillPattern=ctx.createPattern(img, 'repeat');
+          new Chart(ctx, {
+  type: 'bar',
+  data: {
+    datasets: [{
+      data: [{x: 'Sales', y: 20}, {x: 'Revenue', y: 10}]
+    }]
+  }
+}
+          );
+        }
+
+    </script>
 {% endblock %}

@@ -12,23 +12,23 @@ django.setup()
 #5.when you set the value,you can set the abspath of your project settings file,but cons-
 #idering the compability issue,you need to utilize the os.path.dirname method to find the
 #root dir of your project,and then add it to the sys.path
-from web.models import PricePolicy
-PricePolicy.objects.create(
-    category=1,
-    title='individual free',
-    price=0,
-    proj_num=3,
-    proj_space=20,
-    per_file_size=20,
-)
-PricePolicy.objects.create(
-    category=2,
-    title='Premium 30RMB/month',
-    price=30,
-    proj_num=30,
-    proj_space=200,
-    per_file_size=50,
-)
+# from web.models import PricePolicy
+# PricePolicy.objects.create(
+#     category=1,
+#     title='individual free',
+#     price=0,
+#     proj_num=3,
+#     proj_space=20,
+#     per_file_size=20,
+# )
+# PricePolicy.objects.create(
+#     category=2,
+#     title='Premium 30RMB/month',
+#     price=30,
+#     proj_num=30,
+#     proj_space=200,
+#     per_file_size=50,
+# )
 
 # from web.models import UserInfo
 # UserInfo.objects.create_user(username='test_for_offline_script',password='testpwd')
@@ -95,3 +95,13 @@ from web.models import Wiki,Project
 #                     )
 # Wiki.objects.create(title='test_009',content='test_009_content',project=test_002,pwiki=None,creator=nwu_001,category='I')
 #
+from django.utils import timezone
+
+ #if the tzinfo is None, then the datetime obj is an naive datetime
+
+from web.models import Project,Issue
+
+issue1=Issue.objects.all().first()
+creating_time=issue1.creating_time
+print(creating_time<datetime.datetime.now())
+## Well, in this time, I can use the comparasion operator.

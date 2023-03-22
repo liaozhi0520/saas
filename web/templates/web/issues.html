@@ -102,6 +102,9 @@
             text-align: center;
             background-color: rgba(255,255,255,0.5);
         }
+        .issueDetailPort a{
+            color: #cee2d9;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -199,12 +202,12 @@
                 <hr class="dividerLine">
                 <div class="panel-body">
                     <div class="table-responsive">
-                        <table class="table sageColor " >
+                        <table class="table sageColor" >
                         <tbody id="issueList">
                             <tr>
                                 <th>
                                     <div>#</div>
-                                    <div>last updated time</div>
+                                    <div>Detail</div>
                                 </th>
                                 <th>
                                     <div>Title</div>
@@ -220,13 +223,15 @@
                                     <div>Status</div>
                                 </th>
                                 <th>
-                                    Details
+                                    Last Updated Time
                                 </th>
                             </tr>
-                            <tr class="issueListItemTemp hidden">
+                            <tr class="issueListItemTemp hidden issueDetailPort">
                                 <td>
                                     <div class="issue_id">#1</div>
-                                    <div class="issue_last_updated_time">2022-3-15 12:12:12</div>
+                                    <div ><a href="#">
+                                        <i class="fa-solid fa-arrow-right-to-bracket fa-bounce"></i>
+                                    </a></div>
                                 </td>
                                 <td>
                                     <div class="issue_title">MyFirstIssue</div>
@@ -241,8 +246,8 @@
                                     <div class="issue_priviledge">Premium</div>
                                     <div class="issue_status">Newly Created</div>
                                 </td>
-                                <td>
-                                    <i class="fa-solid fa-arrow-right-to-bracket fa-3x issueDetailsPort"></i>
+                                <td class="issue_last_updated_time">
+
                                 </td>
                             </tr>
                         </tbody>
@@ -333,6 +338,7 @@
 {% block js %}
     <script src="{% static 'web/js/bootstrap-select.min.js' %}"></script>
     <script>
+        var issueDetailProtPrefix='/manage/{{ request.tracer.project.id }}/issue/details/'
         $(()=>{
             $('.createIssueBtn').on('mouseover',function (){
                 $(this).find('i').addClass('fa-bounce')
@@ -348,7 +354,7 @@
                         var formData=$(this).serialize()
                         console.log(formData)
                         $.ajax({
-                            url:'{% url 'web:issues' project_id=request.tracer.project.id %}',
+                            url:'{% url 'web:issue' project_id=request.tracer.project.id %}',
                             method:'post',
                             data:formData,
                             dataType:'json',
@@ -382,6 +388,7 @@
                 $.each(issueData,function (key,value){
                     clonedIssueItemTemp.find('.issue_'+key).html(value)
                 })
+                clonedIssueItemTemp.find('a').attr('href',issueDetailProtPrefix+issueData.id)
                 clonedIssueItemTemp.removeClass(['hidden','issueListItemTemp'])
                 return clonedIssueItemTemp
             }

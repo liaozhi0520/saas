@@ -201,8 +201,17 @@ class IssueMember(models.Model):
     operating_time=models.DateTimeField(auto_now_add=True)
 
 class IssueReply(models.Model):
+    HAS_REPLIES=[
+        ('0','False'),
+        ('1','True')
+    ]
     issue=models.ForeignKey(to='Issue',on_delete=models.CASCADE)
     parent_reply=models.ForeignKey(to='IssueReply',on_delete=models.CASCADE,related_name='subreplies')
     content=models.CharField(max_length=320)
     creator=models.ForeignKey(to='UserInfo',on_delete=models.CASCADE)
     reply_time=models.DateTimeField(auto_now_add=True)
+    depth=models.PositiveSmallIntegerField()
+    has_replies=models.CharField(choices=HAS_REPLIES,max_length=2,null=True)
+    ##why did I set the depth of the reply model?
+    ##when you get all replies for a issue, the traffic is really big, so I need to get
+    ##first two levels of replies,and then let has_replies to judge if I need to set the more_replies button
