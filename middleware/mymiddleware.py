@@ -3,6 +3,7 @@ from django.utils.deprecation import MiddlewareMixin
 from django.shortcuts import redirect
 from django.urls import reverse
 from web.models import *
+from django.contrib.auth.models import AnonymousUser
 
 class Tracer(object):
     def __init__(self):
@@ -38,12 +39,13 @@ class UserStatusAuth(MiddlewareMixin):
             #when he upgrade his pripol to 3,the endtime of pripol should be extended
 
 class ProjectAuth(MiddlewareMixin):
-
     def process_view(self,request,view_func,view_args,view_kwargs):
         url=request.path_info
         if not url.startswith(r'/manage/'):
             return
         project_id = view_kwargs.get('project_id')
+        if isinstance(request.user,AnonymousUser):
+            return redirect('web:login')
         from web.models import ProjectUser
         projectuser_obj=ProjectUser.objects.filter(project__id=project_id,user=request.user).first()
         if not projectuser_obj:
@@ -62,7 +64,7 @@ class IssueAuth(MiddlewareMixin):
         if not '/issue/details/' in request.path_info:
             return
         issue_id=view_kwargs.get('issue_id')
-        issue=Issue.objects.filter(project=request.tracer.project,id=issue_id)
+        issue=Issue.objects.filter(project=request.tracer.project,id=issue_id).first()
         if issue:
             request.tracer.issue=issue
             return

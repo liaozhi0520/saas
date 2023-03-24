@@ -1,8 +1,11 @@
 {% extends 'web/layout/manage.html' %}
+{% load web_custome_tags %}
+{% load static %}
 {% block title %}
     issue detail
 {% endblock %}
 {% block css %}
+    <link rel="stylesheet" href="{% static 'web/css/bootstrap-select.min.css' %}">
     <style>
         .sageGreen{
             background-color: #849376;
@@ -36,11 +39,25 @@
             background-color: #777777;
             color:#333333;
         }
+        .liveAvatar{
+            display:inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius:20px;
+            font-size:20px;
+            text-align: center;
+            line-height: 30px;
+            color: black;
+        }
+        .sageGreen .list-group-item{
+            background-color: #849376;
+            border:1px solid black
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="container-fluid">
-        <div class="row">
+        <div class="row" >
             <div class="col-sm-12">
                 <div class="panel  issueDetail">
                     <div class="panel-heading clearfix">
@@ -48,25 +65,43 @@
                         <a data-toggle="collapse"  href="#issueDetail" >
                           <i class="fa-solid fa-hand-point-right"></i>Issue Detail
                         </a>
-                          <button type="button" class="btn btn-sm float-right" data-toggle="modal" data-target="#updateIssueDetailsModal">Modify</button>
+                          {% if request.user.username == issue_details.creator__username or request.user.username == issue_details.manager__username%}
+                              <button type="button" class="btn btn-sm float-right" data-toggle="modal" data-target="#updateIssueDetailsModal">Modify</button>
+                              <button type="button" class="btn btn-sm float-right" data-toggle="modal" data-target="#deleteIssueModal">Delete</button>
+                          {% endif %}
                       </h4>
                     </div>
                     <div id="issueDetail" class="panel-collapse collapse in" >
                       <div class="panel-body">
-                            <div class="row no-padding">
-                                <div class="col-sm-12">
-                                    <div class="col-xs-6">issue_creator</div>
-                                    <div class="col-xs-6">issue_creating_time</div>
+                            <ul class="list-group sageGreen">
+                                <li class="list-group-item clearfix">
+                                    <div class="col-xs-6"><i class="fa-solid fa-user-secret"></i>Creator {% live_avatar issue_details.creator__username %}</div>
+                                    <div class="col-xs-6"><i class="fa-solid fa-clock"></i>Creating Time {{ issue_details.creating_time }}</div>
+                                </li>
+                                <div class="list-group-item clearfix">
+                                    <div class="col-xs-4">Status {% issue_status issue_details.status %}</div>
+                                    <div class="col-xs-4">Priviledge {% issue_privilidge issue_details.priviledge %}</div>
+                                    <div class="col-xs-4">Type {% issue_type issue_details.type %}</div>
                                 </div>
-                                <div class="col-sm-12">
-                                    <div class="col-xs-4">issue_status</div>
-                                    <div class="col-xs-4">priviledge</div>
-                                    <div class="col-xs-4">issue_type</div>
+                                <li class="list-group-item clearfix">
+                                    <i class="fa-solid fa-clock"></i>Last Updated Time: {{ issue_details.last_updated_time }}
+                                </li>
+                                <li class="list-group-item clearfix">
+                                    <div class="col-sm-6" style="padding-top: 10px">
+                                    <span>Issue Members </span>
+                                    {% for issue_member in issue_details.members %}
+                                        {% live_avatar issue_member %}
+                                    {% endfor %}
+                                    </div>
+                                <div class="col-sm-6" style="padding-top: 10px">
+                                    <div class="form-group " >
+                                        <label>Issue Description</label>
+                                        <textarea rows="3"  class="form-control" readonly style="border: 2px solid black; background-color: #849376;color:black" >{{ issue_details.description }}</textarea>
+                                    </div>
                                 </div>
-                                <div class="col-sm-12">Last_updated_time</div>
-                                <div class="col-sm-6">issue_members</div>
-                                <div class="col-sm-6">issue_Description</div>
-                            </div>
+                                </li>
+
+                            </ul>
                       </div>
                     </div>
                   </div>
@@ -99,9 +134,8 @@
             </div>
         </div>
     </div>
-{#    modal of updating the issue details#}
-    <div class="modal fade" id="updateIssueDetailsModal" tabindex="-1" >
-        <div class="modal-dialog " >
+    <div class="modal fade" id="updateIssueDetailsModal" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog modal-lg" >
             <div class="modal-content sageGreen">
                 <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal"><span >&times;</span></button>
@@ -110,12 +144,82 @@
                 <div class="modal-body">
                     <form id="updateIssueDetailsForm" autocomplete="on">
                         {% csrf_token %}
-                        fields of this form are the same as the creating form
+                    <div class="form-group">
+                        <div class="input-group">
+                          <div class="input-group-addon"><b>{{ update_issue_details_form.title.label }}</b></div>
+                            {{update_issue_details_form.title}}
+                        </div>
+                        <div class="error-msg {{ update_issue_details_form.title.name }}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ update_issue_details_form.description.id_for_label }}">{{ update_issue_details_form.description.label }}</label>
+                        {{ update_issue_details_form.description }}
+                        <div class="error-msg {{ update_issue_details_form.description.name }}"></div>
+                    </div>
+                    <div class="row no-padding">
+                        <div class="col-sm-6">
+                        <div class="form-group">
+                        <label for="{{ update_issue_details_form.type.id_for_label }}">{{ update_issue_details_form.type.label }}</label>
+                        {{ update_issue_details_form.type  }}
+                            <div class="error-msg {{ update_issue_details_form.type.name }}"></div>
+                    </div>
+                    </div>
+                        <div class="col-sm-6">
+                        <div class="form-group">
+                        <label for="{{ update_issue_details_form.priviledge.id_for_label }}">{{ update_issue_details_form.priviledge.label }}</label>
+                        {{ update_issue_details_form.priviledge }}
+                            <div class="error-msg {{ update_issue_details_form.priviledge.name }}"></div>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="row no-padding">
+                        <div class="col-sm-6">
+                        <div class="form-group">
+                        <label for="{{ update_issue_details_form.issue_manager.id_for_label }}">{{ update_issue_details_form.issue_manager.label }}</label>
+                        {{ update_issue_details_form.issue_manager }}
+                            <div class="error-msg {{ update_issue_details_form.issue_manager.name }}"></div>
+                    </div>
+                    </div>
+                        <div class="col-sm-6">
+                        <div class="form-group">
+                        <label for="{{ update_issue_details_form.issue_members.id_for_label }}">{{ update_issue_details_form.issue_members.label }}</label>
+                        {{ update_issue_details_form.issue_members }}<div class="error-msg {{ update_issue_details_form.issue_members.name }}"></div>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ update_issue_details_form.deadline_time.id_for_label }}">{{ update_issue_details_form.deadline_time.label }}</label>
+                        {{ update_issue_details_form.deadline_time }}
+                        <div class="error-msg {{ update_issue_details_form.deadline_time.name }}"></div>
+                    </div>
+                </form>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" id="triggerSubmissionUpdatingIssueDetailsForm">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deleteIssueModal" tabindex="-1">
+        <div class="modal-dialog" >
+            <div class="modal-content sageGreen">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal"><span >&times;</span></button>
+                  <h4 class="modal-title" >Delete this Issue</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="deleteIssueForm" autocomplete="on">
+                        <div class="form-group">
+                            <label for="deleteIssueConfirmationInput">Please type <b style="color: #ffc107">{{ issue_details.title}}</b> to confirm you actually want to delete this issue</label>
+                            <input id="deleteIssueConfirmationInput" type="text" class="form-control">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="triggerSubmissionDeleteIssueForm" disabled>Delete</button>
                 </div>
             </div>
         </div>
@@ -144,8 +248,10 @@
             </div>
         </div>
     </div>
+
 {% endblock %}
 {% block js %}
+    <script src="{% static 'web/js/bootstrap-select.min.js' %}"></script>
     <script>
         function bindButtonToFormSubmitAjax(buttonId,submitAJaxFunction) {
             $('#'+buttonId).on('click',function () {
@@ -156,7 +262,7 @@
             var formData=$('#updateIssueDetailsForm').serialize()
             $.ajax({
                 method: 'post',
-                url:'',
+                url:'{% url 'web:issue_details_update' project_id=request.tracer.project.id issue_id=request.tracer.issue.id%}',
                 data:formData,
                 dataType: 'json',
                 success: function (response) {
@@ -166,7 +272,7 @@
                     else{
                         validationRes=response.content
                         $.each(validationRes,function (key,value) {
-                            //show the error msg for each field
+                            $('#updateIssueDetailsForm').find('.error-msg.'+key).html(value)
                         })
                     }
                 },
@@ -174,6 +280,24 @@
                     alert('Error:'+jqXHR.textResponse+'('+textErrorCode+')')
                 }
             })
+        }
+        function deleteIssueFormSubmit() {
+            $.ajax({
+                method:'get',
+                url:"{% url 'web:issue_details_delete' project_id=request.tracer.project.id  issue_id=request.tracer.issue.id %}",
+                success:function (response) {
+                    if(response.flag){
+                        location.href='{% url 'web:issue' project_id=request.tracer.project.id %}'
+                    }
+                    else{
+                        alert('Error:'+response.content)
+                    }
+                },
+                error:function (jqXHR,textError,errorThrown) {
+                    alert('Error:'+jqXHR.textResponse+'('+textError+')following by thrown error message:'+errorThrown)
+                }
+            })
+
         }
         function propagateReplyIdToReplyForm() {
             $('.propagateReplyId').on('click',function () {
@@ -246,7 +370,17 @@
         $(function () {
             bindButtonToFormSubmitAjax('triggerSubmissionUpdatingIssueDetailsForm',updateIssueDetailFormSumbit)
             bindButtonToFormSubmitAjax('triggerSubmissionCreatingReplyForm',createReplyFormSubmit)
+            bindButtonToFormSubmitAjax('triggerSubmissionDeleteIssueForm',deleteIssueFormSubmit)
             getIssueReplies()
+            $('[data-toggle="tooltip"]').tooltip()
+            $('#deleteIssueConfirmationInput').on('input',function () {
+                if($(this).val()=='{{ issue_details.title }}'){
+                    $('#triggerSubmissionDeleteIssueForm').attr('disabled',false)
+                }
+                else{
+                    $('#triggerSubmissionDeleteIssueForm').attr('disabled',true)
+                }
+            })
         })
 
     </script>

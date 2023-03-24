@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'middleware.mymiddleware.UserStatusAuth',
     'middleware.mymiddleware.ProjectAuth',
+    'middleware.mymiddleware.IssueAuth'
 
 ]
 

@@ -155,9 +155,100 @@ class IssueListView(LoginRequiredMixin,View):
             }
             return JsonResponse(response,safe=False)
 
-
 class IssueDetailsView(LoginRequiredMixin,View):
     def get(self,request,*args,**kwargs):
-        issue_id=kwargs.get('issue_id')
-        context={}
+        issue=request.tracer.issue
+        current_issue_data_for_issue_details_displaying={
+            'title':issue.title,
+            'manager__username':issue.manager.username,
+            'creator__username':issue.creator.username,
+            'creating_time':issue.creating_time.strftime('%Y-%m-%d %H:%M'),
+            'status':issue.status,
+            'priviledge':issue.priviledge,
+            'type':issue.type,
+            'last_updated_time':issue.last_updated_time.strftime('%Y-%m-%d %H:%M'),
+            'members':[member_username[0] for member_username in
+                             IssueMember.objects.filter(issue=issue,relation='3').values_list('member__username')],
+            'description':issue.description,
+        }
+        current_issue_data_for_updating_form={
+            'title':issue.title,
+            'description':issue.description,
+            'type':issue.type,
+            'priviledge':issue.priviledge,
+            'issue_manager':issue.manager.id,
+            'issue_members':[member_id_tuple[0] for member_id_tuple in
+                       IssueMember.objects.filter(issue=issue,relation='3').values_list('member')],
+            'deadline_time':issue.deadline_time.strftime('%Y-%m-%dT%H:%M')
+        }
+        update_issue_details_form=updateIssueDetailForm(request,data=current_issue_data_for_updating_form)
+        context={
+            'request':request,
+            'update_issue_details_form':update_issue_details_form,
+            'issue_details':current_issue_data_for_issue_details_displaying
+        }
         return render(request,r'web/issue_detail.html',context=context)
+
+class IssueDetailsUpdateView(LoginRequiredMixin,View):
+    def post(self,request,*args,**kwargs):
+        if request.user!=request.tracer.issue.creator or request.user!=request.tracer.issue.manager:
+            response={
+                'flag':False,
+                'content':'only the creator or the manager can update details of issue'
+            }
+            return JsonResponse(response)
+        update_issue_details_form=updateIssueDetailForm(request,data=request.POST)
+        if update_issue_details_form.is_valid():
+            cleaned_data=update_issue_details_form.cleaned_data
+            Issue.objects.filter(id=request.tracer.issue.id).update(
+                title=cleaned_data.get('title'),
+                description=cleaned_data.get('description'),
+                type=cleaned_data.get('type'),
+                priviledge=cleaned_data.get('priviledge'),
+                manager=UserInfo.objects.filter(id=cleaned_data.get('issue_manager')).first(),
+                deadline_time=cleaned_data.get('deadline_time')
+            )
+            if cleaned_data.get('manager_being_altered',None):
+                IssueMember.objects.filter(issue=request.tracer.issue,relation='2').update(
+                    member=UserInfo.objects.filter(id=cleaned_data.get('issue_manager')).first()
+                )
+            if cleaned_data.get('members_being_altered',None):
+                original_members=cleaned_data.get('original_members')
+                altered_members=cleaned_data.get('issue_members')
+                for original_member in original_members:
+                    if original_member not in altered_members:
+                        IssueMember.objects.filter(issue=request.tracer.issue,member__id=original_member).delete()
+                for altered_member in altered_members:
+                    if altered_member not in original_members:
+                        IssueMember.objects.create(
+                            issue=request.tracer.issue,
+                            member=UserInfo.objects.filter(id=altered_member).first(),
+                            relation='3',
+                            operator=request.user
+                        )
+            response={
+                'flag':True,
+                'content':'Update issue details successfully.'
+            }
+        else:
+            response={
+                'flag':False,
+                'content':update_issue_details_form.errors
+            }
+        return JsonResponse(response,safe=False)
+
+class IssueDetailsDeleteView(LoginRequiredMixin,View):
+    def get(self,request,*args,**kwargs):
+        if request.user!=request.tracer.issue.creator:
+            response={
+                'flag':False,
+                'content':"If you aren't creator of this issue, you have no permission to procceed this deletion."
+            }
+            return JsonResponse(response)
+        else:
+            Issue.objects.filter(id=request.tracer.issue.id).delete()
+            response = {
+                'flag': True,
+                'content': "You have already deleted this issue."
+            }
+            return JsonResponse(response)
